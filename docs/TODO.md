@@ -53,9 +53,9 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
   - [x] 액션 버튼 (❤️ 좋아요, 💬 댓글, ✈️ 공유(UI만), 🔖 북마크(UI만))
   - [x] 컨텐츠 섹션 (좋아요 수, 캡션, 댓글 미리보기 2개)
   - [x] 캡션 "... 더 보기" 토글 기능
-- [ ] PostCardSkeleton 로딩 UI (`components/post/PostCardSkeleton.tsx`)
-  - [ ] Skeleton UI (회색 박스 애니메이션)
-  - [ ] Shimmer 효과
+- [x] PostCardSkeleton 로딩 UI (`components/post/PostCardSkeleton.tsx`)
+  - [x] Skeleton UI (회색 박스 애니메이션)
+  - [x] Shimmer 효과
 - [ ] PostFeed 컴포넌트 (`components/post/PostFeed.tsx`)
   - [ ] 게시물 목록 표시
   - [ ] 로딩 상태 처리
