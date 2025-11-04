@@ -24,7 +24,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, Plus, User } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, UserButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import CreatePostModal from "@/components/post/CreatePostModal";
 
@@ -64,8 +64,38 @@ const sidebarItems: SidebarItem[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // 디버깅: 인증 상태 로그
+  console.group("[Sidebar] 인증 상태 확인");
+  console.log("isLoaded:", isLoaded);
+  console.log("isSignedIn:", isSignedIn);
+  console.groupEnd();
+
+  // 로딩 중일 때는 사이드바 기본 구조만 표시 (로그인 버튼은 로딩 완료 후 표시)
+  if (!isLoaded) {
+    return (
+      <aside className="fixed left-0 top-0 h-screen bg-white border-r border-[#dbdbdb] z-10 hidden md:block">
+        <div className="hidden lg:block w-[244px] h-full flex flex-col pt-8 px-4">
+          <div className="mb-8">
+            <Link href="/" className="text-2xl font-bold text-[#262626]">
+              Instagram
+            </Link>
+          </div>
+          {/* 로딩 중 */}
+        </div>
+        <div className="hidden md:block lg:hidden w-[72px] h-full flex flex-col pt-8 px-2">
+          <div className="mb-8 flex justify-center">
+            <Link href="/" className="text-xl font-bold text-[#262626]">
+              IG
+            </Link>
+          </div>
+          {/* 로딩 중 */}
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <>
@@ -77,6 +107,7 @@ export default function Sidebar() {
               Instagram
             </Link>
           </div>
+
           <nav className="flex flex-col gap-1">
             {sidebarItems.map((item) => {
               // 인증이 필요한 메뉴는 로그인하지 않은 경우 스킵
@@ -122,6 +153,39 @@ export default function Sidebar() {
                 </Link>
               );
             })}
+
+            {/* 인증 상태에 따른 버튼 표시 */}
+            <div className="mt-4 pt-4 border-t border-[#dbdbdb]">
+              {!isSignedIn ? (
+                <>
+                  <p className="text-xs text-gray-600 mb-3 px-3">
+                    로그인하여 모든 기능을 사용하세요.
+                  </p>
+                  <Link
+                    href="/sign-in"
+                    className="w-full px-3 py-2 bg-[#0095f6] text-white text-center text-sm font-semibold rounded-lg hover:bg-[#0084d9] transition-colors flex items-center justify-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>로그인</span>
+                  </Link>
+                </>
+              ) : (
+                <div className="px-3 py-2 flex items-center gap-3">
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-8 h-8",
+                        userButtonPopoverCard: "shadow-lg",
+                      },
+                    }}
+                  />
+                  <span className="text-sm text-gray-700 font-medium">
+                    내 프로필
+                  </span>
+                </div>
+              )}
+            </div>
           </nav>
         </div>
 
@@ -132,6 +196,7 @@ export default function Sidebar() {
               IG
             </Link>
           </div>
+
           <nav className="flex flex-col items-center gap-1">
             {sidebarItems.map((item) => {
               // 인증이 필요한 메뉴는 로그인하지 않은 경우 스킵
@@ -180,6 +245,28 @@ export default function Sidebar() {
                 </Link>
               );
             })}
+
+            {/* 인증 상태에 따른 버튼 표시 */}
+            <div className="mt-4 pt-4 border-t border-[#dbdbdb] w-full flex justify-center">
+              {!isSignedIn ? (
+                <Link
+                  href="/sign-in"
+                  className="w-12 h-12 flex items-center justify-center bg-[#0095f6] text-white rounded-lg hover:bg-[#0084d9] transition-colors"
+                  title="로그인"
+                >
+                  <User className="w-6 h-6" />
+                </Link>
+              ) : (
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10",
+                    },
+                  }}
+                />
+              )}
+            </div>
           </nav>
         </div>
       </aside>
