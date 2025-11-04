@@ -63,12 +63,12 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
   - [x] PostFeed 컴포넌트 통합
   - [x] 배경색 #FAFAFA, 카드 배경 #FFFFFF (layout에서 처리)
   - [x] 최대 너비 630px 중앙 정렬 (layout에서 처리)
-- [ ] `/api/posts` GET API (`app/api/posts/route.ts`)
-  - [ ] 페이지네이션 (10개씩)
-  - [ ] 시간 역순 정렬
-  - [ ] 사용자 정보 JOIN (users 테이블)
-  - [ ] post_stats 뷰 활용 (좋아요 수, 댓글 수)
-  - [ ] 댓글 미리보기 최신 2개 조회
+- [x] `/api/posts` GET API (`app/api/posts/route.ts`)
+  - [x] 페이지네이션 (10개씩)
+  - [x] 시간 역순 정렬
+  - [x] 사용자 정보 JOIN (users 테이블)
+  - [x] post_stats 뷰 활용 (좋아요 수, 댓글 수)
+  - [x] 댓글 미리보기 최신 2개 조회
 
 ### 1-4. 홈 피드 - 좋아요 기능
 
