@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { hostname: "img.clerk.com" },
       { hostname: "*.supabase.co" }, // Supabase Storage 이미지
+      { hostname: "images.unsplash.com" }, // Unsplash 이미지
     ],
   },
 };
