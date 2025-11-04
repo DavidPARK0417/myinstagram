@@ -531,7 +531,3 @@ src/
   - Tailwind: https://tailwindcss.com/docs
 
 ---
-
-**문서 버전**: 3.0 (간결 버전)  
-**작성일**: 2025-11-03  
-**작성자**: Yujin
