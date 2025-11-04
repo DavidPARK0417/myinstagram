@@ -105,13 +105,13 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 - [x] Supabase Storage 버킷 생성
   - [x] 버킷 이름: `uploads`
   - [x] 공개 읽기 설정 (RLS 정책 설정됨)
-- [ ] `/api/posts` POST API (`app/api/posts/route.ts`)
-  - [ ] 이미지 파일 업로드 (최대 5MB 검증)
-  - [ ] 파일 형식 검증 (jpg, png, webp 등)
-  - [ ] Supabase Storage에 업로드
-  - [ ] posts 테이블에 데이터 저장
-  - [ ] 에러 처리
-- [ ] 게시물 작성 완료 후 피드 새로고침
+- [x] `/api/posts` POST API (`app/api/posts/route.ts`)
+  - [x] 이미지 파일 업로드 (최대 5MB 검증)
+  - [x] 파일 형식 검증 (jpg, png, webp 등)
+  - [x] Supabase Storage에 업로드
+  - [x] posts 테이블에 데이터 저장
+  - [x] 에러 처리
+- [x] 게시물 작성 완료 후 피드 새로고침
 - [x] Sidebar "만들기" 버튼 클릭 시 모달 열기
 
 ### 2-3. 댓글 기능 - UI & 작성

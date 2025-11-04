@@ -20,6 +20,7 @@
  */
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { X, Upload } from "lucide-react";
 import {
@@ -50,6 +51,7 @@ export default function CreatePostModal({
 
   // 파일 입력 ref
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // 모달이 닫힐 때 상태 초기화
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function CreatePostModal({
     console.group("[CreatePostModal] 게시물 업로드 시작");
     console.log("업로드할 데이터:", {
       image: selectedImage.name,
+      imageSize: selectedImage.size,
       caption: caption,
       captionLength: caption.length,
     });
@@ -138,21 +141,44 @@ export default function CreatePostModal({
     setIsLoading(true);
 
     try {
-      // TODO: 2-2 항목에서 API 호출 구현
-      // 현재는 로그만 남기고 실제 업로드는 구현하지 않음
-      console.log("📝 API 호출 준비 중... (2-2 항목에서 구현 예정)");
+      // FormData 생성
+      const formData = new FormData();
+      formData.append("image", selectedImage);
+      formData.append("caption", caption);
 
-      // 임시로 성공 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("📝 API 호출: POST /api/posts");
 
-      console.log("✅ 게시물 업로드 성공 (시뮬레이션)");
+      // API 호출
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        body: formData,
+        // Content-Type은 FormData 사용 시 자동 설정됨
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("❌ API 호출 실패:", data);
+        throw new Error(
+          data.message || "게시물 업로드 중 오류가 발생했습니다.",
+        );
+      }
+
+      console.log("✅ 게시물 업로드 성공:", data.post?.id);
       console.groupEnd();
 
       // 모달 닫기
       onOpenChange(false);
+
+      // 페이지 새로고침 (피드 업데이트)
+      router.refresh();
     } catch (error) {
       console.error("❌ 게시물 업로드 오류:", error);
-      alert("게시물 업로드 중 오류가 발생했습니다.");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "게시물 업로드 중 오류가 발생했습니다.",
+      );
     } finally {
       setIsLoading(false);
       console.groupEnd();
