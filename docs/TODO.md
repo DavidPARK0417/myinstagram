@@ -56,13 +56,13 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 - [x] PostCardSkeleton 로딩 UI (`components/post/PostCardSkeleton.tsx`)
   - [x] Skeleton UI (회색 박스 애니메이션)
   - [x] Shimmer 효과
-- [ ] PostFeed 컴포넌트 (`components/post/PostFeed.tsx`)
-  - [ ] 게시물 목록 표시
-  - [ ] 로딩 상태 처리
-- [ ] 홈 피드 페이지 (`app/(main)/page.tsx`)
-  - [ ] PostFeed 컴포넌트 통합
-  - [ ] 배경색 #FAFAFA, 카드 배경 #FFFFFF
-  - [ ] 최대 너비 630px 중앙 정렬
+- [x] PostFeed 컴포넌트 (`components/post/PostFeed.tsx`)
+  - [x] 게시물 목록 표시
+  - [x] 로딩 상태 처리
+- [x] 홈 피드 페이지 (`app/(main)/page.tsx`)
+  - [x] PostFeed 컴포넌트 통합
+  - [x] 배경색 #FAFAFA, 카드 배경 #FFFFFF (layout에서 처리)
+  - [x] 최대 너비 630px 중앙 정렬 (layout에서 처리)
 - [ ] `/api/posts` GET API (`app/api/posts/route.ts`)
   - [ ] 페이지네이션 (10개씩)
   - [ ] 시간 역순 정렬
