@@ -8,39 +8,42 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 1-1. 기본 세팅
 
-- [ ] Next.js 프로젝트 생성 및 TypeScript 설정
-- [ ] Tailwind CSS 설정 (Instagram 컬러 스키마 적용)
-  - [ ] `globals.css`에 컬러 변수 정의 (--instagram-blue, --background, --card-background 등)
-  - [ ] 타이포그래피 설정
-- [ ] Clerk 인증 연동 및 한국어 설정
-  - [ ] 환경 변수 설정
-  - [ ] ClerkProvider 설정
-  - [ ] 로그인/회원가입 페이지 라우팅
-- [ ] Supabase 프로젝트 생성 및 연동
-  - [ ] 환경 변수 설정
-  - [ ] Supabase 클라이언트 설정 (`lib/supabase/`)
-- [ ] 데이터베이스 테이블 생성 (마이그레이션)
-  - [ ] `users` 테이블 (clerk_id, name, created_at 등)
-  - [ ] `posts` 테이블 (id, user_id, image_url, caption, created_at 등)
-  - [ ] RLS 비활성화 (개발 환경)
+- [x] Next.js 프로젝트 생성 및 TypeScript 설정
+- [x] Tailwind CSS 설정 (Instagram 컬러 스키마 적용)
+  - [x] `globals.css`에 컬러 변수 정의 (--instagram-blue, --background, --card-background 등)
+  - [x] 타이포그래피 설정
+- [x] Clerk 인증 연동 및 한국어 설정
+  - [x] 환경 변수 설정
+  - [x] ClerkProvider 설정
+  - [x] 로그인/회원가입 페이지 라우팅
+- [x] Supabase 프로젝트 생성 및 연동
+  - [x] 환경 변수 설정
+  - [x] Supabase 클라이언트 설정 (`lib/supabase/`)
+- [x] 데이터베이스 테이블 생성 (마이그레이션)
+  - [x] `users` 테이블 (clerk_id, name, created_at 등)
+  - [x] `posts` 테이블 (id, user_id, image_url, caption, created_at 등)
+  - [x] `likes` 테이블 (id, post_id, user_id, created_at)
+  - [x] `comments` 테이블 (id, post_id, user_id, content, created_at)
+  - [x] `follows` 테이블 (id, follower_id, following_id, created_at)
+  - [x] RLS 비활성화 (개발 환경)
 
 ### 1-2. 레이아웃 구조
 
-- [ ] Sidebar 컴포넌트 (`components/layout/Sidebar.tsx`)
-  - [ ] Desktop: 244px 너비, 아이콘 + 텍스트 메뉴
-  - [ ] Tablet: 72px 너비, 아이콘만 표시
-  - [ ] Hover 효과, Active 상태 스타일링
-  - [ ] 메뉴 항목: 홈, 검색, 만들기, 프로필
-- [ ] MobileHeader 컴포넌트 (`components/layout/Header.tsx`)
-  - [ ] 높이 60px
-  - [ ] 로고 + 알림/DM/프로필 아이콘
-- [ ] BottomNav 컴포넌트 (`components/layout/BottomNav.tsx`)
-  - [ ] 높이 50px
-  - [ ] 5개 아이콘 메뉴 (홈, 검색, 만들기, 좋아요, 프로필)
-- [ ] (main) Route Group 레이아웃 (`app/(main)/layout.tsx`)
-  - [ ] Sidebar + 메인 컨텐츠 레이아웃
-  - [ ] 반응형 처리 (Mobile/Tablet/Desktop)
-  - [ ] MobileHeader 및 BottomNav 조건부 렌더링
+- [x] Sidebar 컴포넌트 (`components/layout/Sidebar.tsx`)
+  - [x] Desktop: 244px 너비, 아이콘 + 텍스트 메뉴
+  - [x] Tablet: 72px 너비, 아이콘만 표시
+  - [x] Hover 효과, Active 상태 스타일링
+  - [x] 메뉴 항목: 홈, 검색, 만들기, 프로필
+- [x] MobileHeader 컴포넌트 (`components/layout/Header.tsx`)
+  - [x] 높이 60px
+  - [x] 로고 + 알림/DM/프로필 아이콘
+- [x] BottomNav 컴포넌트 (`components/layout/BottomNav.tsx`)
+  - [x] 높이 50px
+  - [x] 5개 아이콘 메뉴 (홈, 검색, 만들기, 좋아요, 프로필)
+- [x] (main) Route Group 레이아웃 (`app/(main)/layout.tsx`)
+  - [x] Sidebar + 메인 컨텐츠 레이아웃
+  - [x] 반응형 처리 (Mobile/Tablet/Desktop)
+  - [x] MobileHeader 및 BottomNav 조건부 렌더링
 
 ### 1-3. 홈 피드 - 게시물 목록
 
@@ -67,8 +70,8 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 1-4. 홈 피드 - 좋아요 기능
 
-- [ ] `likes` 테이블 생성 (마이그레이션)
-  - [ ] id, post_id, user_id, created_at
+- [x] `likes` 테이블 생성 (마이그레이션)
+  - [x] id, post_id, user_id, created_at
 - [ ] `/api/likes` POST API (`app/api/likes/route.ts`)
   - [ ] 좋아요 추가
   - [ ] 중복 체크
@@ -97,9 +100,9 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 2-2. 게시물 작성 - 이미지 업로드
 
-- [ ] Supabase Storage 버킷 생성
-  - [ ] 버킷 이름: `posts` 또는 `uploads`
-  - [ ] 공개 읽기 설정
+- [x] Supabase Storage 버킷 생성
+  - [x] 버킷 이름: `uploads`
+  - [x] 공개 읽기 설정 (RLS 정책 설정됨)
 - [ ] `/api/posts` POST API (`app/api/posts/route.ts`)
   - [ ] 이미지 파일 업로드 (최대 5MB 검증)
   - [ ] 파일 형식 검증 (jpg, png, webp 등)
@@ -111,8 +114,8 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 2-3. 댓글 기능 - UI & 작성
 
-- [ ] `comments` 테이블 생성 (마이그레이션)
-  - [ ] id, post_id, user_id, content, created_at
+- [x] `comments` 테이블 생성 (마이그레이션)
+  - [x] id, post_id, user_id, content, created_at
 - [ ] CommentList 컴포넌트 (`components/comment/CommentList.tsx`)
   - [ ] 댓글 목록 표시
   - [ ] PostCard: 최신 2개 미리보기
@@ -173,9 +176,9 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 3-3. 팔로우 기능
 
-- [ ] `follows` 테이블 생성 (마이그레이션)
-  - [ ] id, follower_id, following_id, created_at
-  - [ ] 중복 방지 (unique constraint)
+- [x] `follows` 테이블 생성 (마이그레이션)
+  - [x] id, follower_id, following_id, created_at
+  - [x] 중복 방지 (unique constraint)
 - [ ] `/api/follows` POST API (`app/api/follows/route.ts`)
   - [ ] 팔로우 추가
   - [ ] 중복 체크

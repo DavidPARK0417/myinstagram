@@ -11,9 +11,9 @@ const Navbar = () => {
       </Link>
       <div className="flex gap-4 items-center">
         <SignedOut>
-          <SignInButton mode="modal">
+          <Link href="/sign-in">
             <Button>로그인</Button>
-          </SignInButton>
+          </Link>
         </SignedOut>
         <SignedIn>
           <UserButton />

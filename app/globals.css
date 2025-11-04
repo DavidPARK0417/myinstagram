@@ -41,41 +41,66 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Instagram 컬러 스키마 */
+  --color-instagram-blue: var(--instagram-blue);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-like: var(--like);
+  --color-card-background: var(--card-background);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+
+  /* Instagram 컬러 스키마 (PRD 기반) */
+  --instagram-blue: #0095f6;
+  --background: #fafafa;
+  --card-background: #ffffff;
+  --border: #dbdbdb;
+  --text-primary: #262626;
+  --text-secondary: #8e8e8e;
+  --like: #ed4956;
+
+  /* 기존 shadcn 색상 시스템 (Instagram 색상으로 덮어쓰기) */
+  --foreground: #262626; /* text-primary 사용 */
+  --card: #ffffff; /* card-background 사용 */
+  --card-foreground: #262626; /* text-primary 사용 */
+  --popover: #ffffff;
+  --popover-foreground: #262626;
+  --primary: #0095f6; /* instagram-blue 사용 */
+  --primary-foreground: #ffffff;
+  --secondary: #fafafa;
+  --secondary-foreground: #262626;
+  --muted: #fafafa;
+  --muted-foreground: #8e8e8e; /* text-secondary 사용 */
+  --accent: #fafafa;
+  --accent-foreground: #262626;
+  --destructive: #ed4956; /* like 색상 사용 */
+  --input: #dbdbdb; /* border 사용 */
+  --ring: #0095f6; /* instagram-blue 사용 */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #262626;
+  --sidebar-primary: #0095f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fafafa;
+  --sidebar-accent-foreground: #262626;
+  --sidebar-border: #dbdbdb;
+  --sidebar-ring: #0095f6;
+
+  /* 타이포그래피 */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-xl: 20px;
+  --font-normal: 400;
+  --font-semibold: 600;
+  --font-bold: 700;
 }
 
 .dark {
@@ -118,6 +143,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Instagram 타이포그래피 기본 설정 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      sans-serif;
   }
   main {
     @apply max-w-7xl mx-auto pt-16 px-4;
