@@ -74,18 +74,18 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 - [x] `likes` 테이블 생성 (마이그레이션)
   - [x] id, post_id, user_id, created_at
-- [ ] `/api/likes` POST API (`app/api/likes/route.ts`)
-  - [ ] 좋아요 추가
-  - [ ] 중복 체크
-- [ ] `/api/likes` DELETE API
-  - [ ] 좋아요 삭제
-- [ ] 좋아요 버튼 기능 (`components/post/PostCard.tsx`)
-  - [ ] 빈 하트 ↔ 빨간 하트 상태 전환
-  - [ ] 클릭 애니메이션 (scale 1.3 → 1, 0.15초)
-  - [ ] 좋아요 수 실시간 업데이트
-- [ ] 이미지 더블탭 좋아요 기능 (모바일)
-  - [ ] 더블탭 감지
-  - [ ] 큰 하트 등장 애니메이션 (fade in/out, 1초)
+- [x] `/api/likes` POST API (`app/api/likes/route.ts`)
+  - [x] 좋아요 추가
+  - [x] 중복 체크
+- [x] `/api/likes` DELETE API
+  - [x] 좋아요 삭제
+- [x] 좋아요 버튼 기능 (`components/post/PostCard.tsx`)
+  - [x] 빈 하트 ↔ 빨간 하트 상태 전환
+  - [x] 클릭 애니메이션 (scale 1.3 → 1, 0.15초)
+  - [x] 좋아요 수 실시간 업데이트
+- [x] 이미지 더블탭 좋아요 기능 (모바일)
+  - [x] 더블탭 감지
+  - [x] 큰 하트 등장 애니메이션 (fade in/out, 1초)
 
 ---
 
@@ -93,12 +93,12 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 2-1. 게시물 작성 모달
 
-- [ ] CreatePostModal 컴포넌트 (`components/post/CreatePostModal.tsx`)
-  - [ ] Dialog 모달 (shadcn/ui)
-  - [ ] 이미지 선택 및 미리보기 UI
-  - [ ] 캡션 입력 필드 (최대 2,200자)
-  - [ ] 업로드 버튼
-  - [ ] 로딩 상태 처리
+- [x] CreatePostModal 컴포넌트 (`components/post/CreatePostModal.tsx`)
+  - [x] Dialog 모달 (shadcn/ui)
+  - [x] 이미지 선택 및 미리보기 UI
+  - [x] 캡션 입력 필드 (최대 2,200자)
+  - [x] 업로드 버튼
+  - [x] 로딩 상태 처리
 
 ### 2-2. 게시물 작성 - 이미지 업로드
 
@@ -112,7 +112,7 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
   - [ ] posts 테이블에 데이터 저장
   - [ ] 에러 처리
 - [ ] 게시물 작성 완료 후 피드 새로고침
-- [ ] Sidebar "만들기" 버튼 클릭 시 모달 열기
+- [x] Sidebar "만들기" 버튼 클릭 시 모달 열기
 
 ### 2-3. 댓글 기능 - UI & 작성
 

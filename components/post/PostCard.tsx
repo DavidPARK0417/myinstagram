@@ -12,6 +12,7 @@
  * 3. 액션 버튼 (좋아요, 댓글, 공유(UI만), 북마크(UI만))
  * 4. 컨텐츠 섹션 (좋아요 수, 캡션, 댓글 미리보기 2개)
  * 5. 캡션 "... 더 보기" 토글 기능
+ * 6. 좋아요 기능 (버튼 클릭, 이미지 더블탭)
  *
  * @dependencies
  * - lucide-react: 아이콘 라이브러리
@@ -19,7 +20,7 @@
  * - lib/utils/format-time: 상대 시간 포맷팅
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -40,6 +41,25 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
 
+  // 좋아요 상태 관리
+  const [isLiked, setIsLiked] = useState(post.user_liked || false);
+  const [likesCount, setLikesCount] = useState(post.likes_count || 0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isDoubleTapAnimating, setIsDoubleTapAnimating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 더블탭 애니메이션 효과 제어 (fade in/out)
+  useEffect(() => {
+    if (isDoubleTapAnimating) {
+      // 애니메이션이 시작되면 즉시 fade-in 효과를 위해 리렌더링 트리거
+      // 1초 후 fade-out을 위해 타이머 설정
+      const timer = setTimeout(() => {
+        setIsDoubleTapAnimating(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isDoubleTapAnimating]);
+
   // 캡션 줄 수 계산 (대략적으로)
   const captionLines = post.caption ? Math.ceil(post.caption.length / 40) : 0; // 한 줄당 약 40자로 가정
   const shouldShowMore = captionLines > 2;
@@ -57,6 +77,126 @@ export default function PostCard({ post }: PostCardProps) {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
     .slice(0, 2) as CommentWithUser[];
+
+  /**
+   * 좋아요 버튼 클릭 핸들러
+   */
+  const handleLikeClick = async () => {
+    if (isLoading) return;
+
+    console.group(`[PostCard] 좋아요 버튼 클릭 - post_id: ${post.post_id}`);
+    console.log("현재 상태:", { isLiked, likesCount });
+
+    setIsLoading(true);
+    setIsAnimating(true);
+
+    try {
+      const url = "/api/likes";
+      const method = isLiked ? "DELETE" : "POST";
+      const body = JSON.stringify({ post_id: post.post_id });
+
+      console.log(`API 호출: ${method} ${url}`, { post_id: post.post_id });
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("❌ API 호출 실패:", data);
+        throw new Error(data.message || "좋아요 처리 중 오류가 발생했습니다.");
+      }
+
+      // 상태 업데이트
+      const newIsLiked = !isLiked;
+      const newLikesCount = newIsLiked ? likesCount + 1 : likesCount - 1;
+
+      setIsLiked(newIsLiked);
+      setLikesCount(newLikesCount);
+
+      console.log("✅ 상태 업데이트:", {
+        isLiked: newIsLiked,
+        likesCount: newLikesCount,
+      });
+    } catch (error) {
+      console.error("❌ 좋아요 처리 오류:", error);
+      // 에러 발생 시 사용자에게 알림 (추후 토스트 메시지로 개선 가능)
+      alert(
+        error instanceof Error
+          ? error.message
+          : "좋아요 처리 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsLoading(false);
+      // 클릭 애니메이션 완료 대기 (0.15초)
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 150);
+      console.groupEnd();
+    }
+  };
+
+  /**
+   * 이미지 더블탭 핸들러
+   */
+  const handleDoubleClick = async () => {
+    // 이미 좋아요가 눌려있으면 무시
+    if (isLiked || isLoading) return;
+
+    console.group(`[PostCard] 이미지 더블탭 - post_id: ${post.post_id}`);
+    console.log("현재 상태:", { isLiked, likesCount });
+
+    // 더블탭 애니메이션 시작
+    setIsDoubleTapAnimating(true);
+
+    try {
+      const url = "/api/likes";
+      const body = JSON.stringify({ post_id: post.post_id });
+
+      console.log(`API 호출: POST ${url}`, { post_id: post.post_id });
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("❌ API 호출 실패:", data);
+        throw new Error(data.message || "좋아요 처리 중 오류가 발생했습니다.");
+      }
+
+      // 상태 업데이트
+      setIsLiked(true);
+      setLikesCount(likesCount + 1);
+
+      console.log("✅ 상태 업데이트:", {
+        isLiked: true,
+        likesCount: likesCount + 1,
+      });
+    } catch (error) {
+      console.error("❌ 좋아요 처리 오류:", error);
+      // 에러 발생 시 사용자에게 알림
+      alert(
+        error instanceof Error
+          ? error.message
+          : "좋아요 처리 중 오류가 발생했습니다.",
+      );
+      // 에러 발생 시에도 애니메이션은 정상적으로 진행되도록 함
+    } finally {
+      // 더블탭 애니메이션은 useEffect에서 자동으로 처리됨
+      console.groupEnd();
+    }
+  };
 
   return (
     <article className="bg-white border border-[#dbdbdb] rounded-lg mb-4">
@@ -102,25 +242,48 @@ export default function PostCard({ post }: PostCardProps) {
       </header>
 
       {/* 이미지 영역 (1:1 정사각형) */}
-      <div className="relative aspect-square w-full bg-gray-100">
+      <div
+        className="relative aspect-square w-full bg-gray-100 cursor-pointer select-none"
+        onDoubleClick={handleDoubleClick}
+      >
         <Image
           src={post.image_url}
           alt={post.caption || "게시물 이미지"}
           fill
-          className="object-cover"
+          className="object-cover pointer-events-none"
           sizes="(max-width: 768px) 100vw, 630px"
         />
+        {/* 더블탭 큰 하트 애니메이션 */}
+        {isDoubleTapAnimating && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <Heart
+              className={cn(
+                "w-24 h-24 text-[#ed4956] fill-[#ed4956]",
+                "transition-all duration-1000 ease-in-out",
+                "opacity-100 scale-100",
+              )}
+            />
+          </div>
+        )}
       </div>
 
       {/* 액션 버튼 섹션 (48px) */}
       <div className="h-12 flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
           {/* 좋아요 버튼 */}
-          <button className="text-[#262626] hover:opacity-50 transition-opacity">
+          <button
+            onClick={handleLikeClick}
+            disabled={isLoading}
+            className={cn(
+              "text-[#262626] hover:opacity-50 transition-opacity",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+            )}
+          >
             <Heart
               className={cn(
-                "w-6 h-6",
-                post.user_liked && "fill-[#ed4956] text-[#ed4956]",
+                "w-6 h-6 transition-transform duration-150",
+                isAnimating && "scale-125",
+                isLiked && "fill-[#ed4956] text-[#ed4956]",
               )}
             />
           </button>
@@ -150,9 +313,9 @@ export default function PostCard({ post }: PostCardProps) {
       {/* 컨텐츠 섹션 */}
       <div className="px-4 pb-4 space-y-2">
         {/* 좋아요 수 */}
-        {post.likes_count > 0 && (
+        {likesCount > 0 && (
           <div className="font-semibold text-[#262626]">
-            좋아요 {post.likes_count.toLocaleString()}개
+            좋아요 {likesCount.toLocaleString()}개
           </div>
         )}
 
