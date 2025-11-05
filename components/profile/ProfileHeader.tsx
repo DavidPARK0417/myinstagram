@@ -11,12 +11,14 @@
  * 2. 사용자명, 전체 이름
  * 3. 통계 (게시물 수, 팔로워 수, 팔로잉 수)
  * 4. "팔로우" 또는 "팔로잉" 버튼 (다른 사람 프로필일 때)
+ * 5. 팔로우/언팔로우 기능
  *
  * @dependencies
  * - next/image: 이미지 컴포넌트
  * - types/post: 타입 정의
  */
 
+import { useState } from "react";
 import Image from "next/image";
 import { ProfileInfo } from "@/types/post";
 import { cn } from "@/lib/utils";
@@ -30,17 +32,82 @@ interface ProfileHeaderProps {
 export default function ProfileHeader({
   user,
   isOwnProfile,
-  isFollowing,
+  isFollowing: initialIsFollowing,
 }: ProfileHeaderProps) {
+  // 팔로우 상태 관리
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [isLoading, setIsLoading] = useState(false);
+  const [followersCount, setFollowersCount] = useState(
+    user.followers_count || 0,
+  );
+
   /**
-   * 팔로우 버튼 클릭 핸들러 (3-3에서 구현 예정)
+   * 팔로우 버튼 클릭 핸들러
    */
-  const handleFollowClick = () => {
-    console.log("[ProfileHeader] 팔로우 버튼 클릭:", {
-      userId: user.id,
-      isFollowing,
-    });
-    // TODO: 3-3에서 팔로우/언팔로우 기능 구현
+  const handleFollowClick = async () => {
+    if (isLoading) return;
+
+    console.group(`[ProfileHeader] 팔로우 버튼 클릭 - user_id: ${user.id}`);
+    console.log("현재 상태:", { isFollowing, followersCount });
+
+    setIsLoading(true);
+
+    try {
+      const url = "/api/follows";
+      const method = isFollowing ? "DELETE" : "POST";
+      const body = JSON.stringify({ following_id: user.id });
+
+      console.log(`API 호출: ${method} ${url}`, { following_id: user.id });
+
+      // Optimistic Update: 즉시 UI 업데이트
+      const newIsFollowing = !isFollowing;
+      const newFollowersCount = newIsFollowing
+        ? followersCount + 1
+        : followersCount - 1;
+
+      setIsFollowing(newIsFollowing);
+      setFollowersCount(newFollowersCount);
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+
+      console.log("📡 응답 상태:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("❌ API 호출 실패:", data);
+        // 실패 시 롤백
+        setIsFollowing(isFollowing);
+        setFollowersCount(followersCount);
+        throw new Error(data.message || "팔로우 처리 중 오류가 발생했습니다.");
+      }
+
+      console.log("✅ 상태 업데이트:", {
+        isFollowing: newIsFollowing,
+        followersCount: newFollowersCount,
+      });
+    } catch (error) {
+      console.error("❌ 팔로우 처리 오류:", error);
+      // 에러 발생 시 사용자에게 알림
+      alert(
+        error instanceof Error
+          ? error.message
+          : "팔로우 처리 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsLoading(false);
+      console.groupEnd();
+    }
   };
 
   return (
@@ -77,24 +144,26 @@ export default function ProfileHeader({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleFollowClick}
+                disabled={isLoading}
                 className={cn(
                   "px-4 py-1.5 rounded-md text-sm font-semibold transition-all",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
                   isFollowing
                     ? "bg-[#efefef] text-[#262626] hover:bg-[#dbdbdb] hover:border-[#ed4956] hover:text-[#ed4956] border border-transparent"
                     : "bg-[#0095f6] text-white hover:bg-[#1877f2]",
                 )}
                 onMouseEnter={(e) => {
-                  if (isFollowing) {
+                  if (isFollowing && !isLoading) {
                     e.currentTarget.textContent = "언팔로우";
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (isFollowing) {
+                  if (isFollowing && !isLoading) {
                     e.currentTarget.textContent = "팔로잉";
                   }
                 }}
               >
-                {isFollowing ? "팔로잉" : "팔로우"}
+                {isLoading ? "처리 중..." : isFollowing ? "팔로잉" : "팔로우"}
               </button>
             </div>
           )}
@@ -110,7 +179,7 @@ export default function ProfileHeader({
           </div>
           <button className="flex items-center gap-1 hover:opacity-50 transition-opacity">
             <span className="font-semibold text-[#262626]">
-              {user.followers_count || 0}
+              {followersCount}
             </span>
             <span className="text-[#8e8e8e]">팔로워</span>
           </button>
