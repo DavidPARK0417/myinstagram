@@ -246,6 +246,7 @@ export default function CreatePostModal({
                   fill
                   className="object-contain"
                   sizes="600px"
+                  quality={85}
                 />
                 {/* 이미지 제거 버튼 */}
                 <button

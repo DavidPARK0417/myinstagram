@@ -262,10 +262,21 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ## 4. 추가 기능 (선택사항)
 
-- [ ] 게시물 상세 페이지에서 댓글 무한 스크롤
-- [ ] 이미지 최적화 (Next.js Image 컴포넌트)
-- [ ] 메타 태그 설정 (SEO)
-- [ ] PWA 설정 (manifest, service worker)
+- [x] 게시물 상세 페이지에서 댓글 무한 스크롤
+  - [x] `/api/comments` GET API 추가 (페이지네이션)
+  - [x] `CommentList` 컴포넌트에 무한 스크롤 로직 추가
+  - [x] `PostModal` 컴포넌트에서 초기 댓글만 로드하도록 수정
+- [x] 이미지 최적화 (Next.js Image 컴포넌트)
+  - [x] `next.config.ts`에 이미지 최적화 설정 추가 (AVIF, WebP)
+  - [x] Image 컴포넌트에 quality, loading 속성 추가
+- [x] 메타 태그 설정 (SEO)
+  - [x] RootLayout 메타데이터 개선 (Open Graph, Twitter Card)
+  - [x] 게시물 상세 페이지 동적 메타데이터 생성
+  - [x] 프로필 페이지 동적 메타데이터 생성
+- [x] PWA 설정 (manifest, service worker)
+  - [x] `public/manifest.json` 생성
+  - [x] RootLayout에 manifest 링크 추가
+  - [x] Service Worker 설정 (`public/sw.js`, `app/register-sw.tsx`)
 
 ---
 

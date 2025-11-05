@@ -402,6 +402,7 @@ export default function PostModal({
               fill
               className="object-contain"
               sizes="(max-width: 768px) 100vw, 50vw"
+              quality={90}
             />
           </div>
         </div>
@@ -496,9 +497,12 @@ export default function PostModal({
               </div>
             )}
 
-            {/* 댓글 목록 */}
+            {/* 댓글 목록 (무한 스크롤) */}
             <CommentList
-              comments={comments}
+              postId={localPost.post_id}
+              initialComments={comments}
+              initialPage={1}
+              initialHasMore={commentsCount > comments.length}
               onCommentDeleted={handleCommentDeleted}
             />
           </div>

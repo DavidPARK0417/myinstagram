@@ -9,6 +9,7 @@
  * 2. 전체 댓글 표시
  * 3. 댓글 작성 및 삭제
  * 4. 좋아요 기능
+ * 5. SEO 메타데이터 생성
  *
  * @dependencies
  * - components/post/PostModal: 게시물 상세 모달 컴포넌트 재사용
@@ -18,12 +19,85 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import PostModal from "@/components/post/PostModal";
 import PostDetailSkeleton from "@/components/post/PostDetailSkeleton";
 import { PostWithDetails } from "@/types/post";
 
 interface PostDetailPageProps {
   params: Promise<{ postId: string }>;
+}
+
+/**
+ * 동적 메타데이터 생성
+ */
+export async function generateMetadata({
+  params,
+}: PostDetailPageProps): Promise<Metadata> {
+  const { postId } = await params;
+
+  try {
+    // 현재 호스트 정보 가져오기
+    const headersList = await headers();
+    const host = headersList.get("host") || "localhost:3000";
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+    const baseUrl = `${protocol}://${host}`;
+
+    // 게시물 상세 API 호출
+    const response = await fetch(`${baseUrl}/api/posts/${postId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        title: "게시물을 찾을 수 없습니다",
+      };
+    }
+
+    const data = await response.json();
+    const post: PostWithDetails = data.post;
+
+    const title = `${post.user.name}님의 게시물`;
+    const description = post.caption
+      ? post.caption.length > 160
+        ? post.caption.substring(0, 160) + "..."
+        : post.caption
+      : `${post.user.name}님이 게시물을 공유했습니다.`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: "article",
+        images: [
+          {
+            url: post.image_url,
+            width: 1200,
+            height: 1200,
+            alt: post.caption || title,
+          },
+        ],
+        authors: [post.user.name],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [post.image_url],
+      },
+    };
+  } catch (error) {
+    console.error("❌ 메타데이터 생성 오류:", error);
+    return {
+      title: "게시물",
+    };
+  }
 }
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {

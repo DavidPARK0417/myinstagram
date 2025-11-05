@@ -73,12 +73,13 @@ export async function GET(
       );
     }
 
-    // 전체 댓글 조회 (최신순)
+    // 초기 댓글만 조회 (최신 20개, 무한 스크롤용)
     const { data: comments, error: commentsError } = await supabase
       .from("comments")
       .select("id, post_id, user_id, content, created_at, updated_at")
       .eq("post_id", postId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(20);
 
     if (commentsError) {
       console.error("❌ 댓글 조회 실패:", commentsError);

@@ -4,13 +4,19 @@ import { createClerkSupabaseClient } from "@/lib/supabase/server";
 
 /**
  * @file app/api/comments/route.ts
- * @description 댓글 작성 및 삭제 API
+ * @description 댓글 조회, 작성 및 삭제 API
  *
- * 이 API는 게시물에 댓글을 작성하고 삭제합니다.
+ * 이 API는 게시물의 댓글을 조회, 작성하고 삭제합니다.
  *
  * 주요 기능:
- * 1. POST: 댓글 작성
- * 2. DELETE: 댓글 삭제 (본인만 가능)
+ * 1. GET: 댓글 목록 조회 (페이지네이션)
+ * 2. POST: 댓글 작성
+ * 3. DELETE: 댓글 삭제 (본인만 가능)
+ *
+ * @query (GET)
+ * - post_id: 게시물 ID (UUID, 필수)
+ * - page: 페이지 번호 (기본값: 1)
+ * - limit: 페이지당 댓글 수 (기본값: 20)
  *
  * @body (POST)
  * - post_id: 게시물 ID (UUID)
@@ -22,6 +28,162 @@ import { createClerkSupabaseClient } from "@/lib/supabase/server";
  * @dependencies
  * - lib/supabase/server: Supabase 클라이언트
  */
+
+/**
+ * GET - 댓글 목록 조회 (페이지네이션)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    console.group("[API] GET /api/comments - 댓글 목록 조회 시작");
+
+    const { searchParams } = new URL(request.url);
+    const postId = searchParams.get("post_id");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+
+    console.log("📝 요청 데이터:", { postId, page, limit });
+
+    // post_id 검증
+    if (!postId) {
+      console.log("❌ 잘못된 요청: post_id가 없습니다");
+      return NextResponse.json(
+        { error: "Bad Request", message: "post_id가 필요합니다." },
+        { status: 400 },
+      );
+    }
+
+    // 페이지네이션 검증
+    if (page < 1 || limit < 1 || limit > 100) {
+      console.log("❌ 잘못된 요청: 잘못된 페이지네이션 파라미터");
+      return NextResponse.json(
+        {
+          error: "Bad Request",
+          message: "잘못된 페이지네이션 파라미터입니다.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const offset = (page - 1) * limit;
+
+    console.log("✅ 입력 검증 완료");
+
+    // Supabase 클라이언트 생성
+    const supabase = createClerkSupabaseClient();
+
+    // 댓글 조회 (페이지네이션)
+    const { data: comments, error: commentsError } = await supabase
+      .from("comments")
+      .select("id, post_id, user_id, content, created_at, updated_at")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (commentsError) {
+      console.error("❌ 댓글 조회 실패:", commentsError);
+      return NextResponse.json(
+        {
+          error: "Database Error",
+          message: "댓글을 불러오는데 실패했습니다.",
+          details: commentsError.message,
+        },
+        { status: 500 },
+      );
+    }
+
+    console.log("✅ 댓글 조회 성공:", comments?.length || 0);
+
+    // 댓글 작성자 ID 배열 추출
+    const commentUserIds = [
+      ...new Set(comments?.map((comment) => comment.user_id) || []),
+    ];
+
+    // 댓글 작성자 정보 조회
+    const { data: commentUsers, error: commentUsersError } =
+      commentUserIds.length > 0
+        ? await supabase
+            .from("users")
+            .select("id, clerk_id, name, created_at")
+            .in("id", commentUserIds)
+        : { data: [], error: null };
+
+    if (commentUsersError) {
+      console.error("❌ 댓글 작성자 조회 실패:", commentUsersError);
+      return NextResponse.json(
+        {
+          error: "Database Error",
+          message: "댓글 작성자 정보를 불러오는데 실패했습니다.",
+          details: commentUsersError.message,
+        },
+        { status: 500 },
+      );
+    }
+
+    // 댓글 작성자 맵 생성
+    const commentUsersMap = new Map<string, (typeof commentUsers)[0]>(
+      commentUsers?.map((user) => [user.id, user] as [string, typeof user]) ||
+        [],
+    );
+
+    // 댓글에 사용자 정보 추가
+    const commentsWithUsers = (comments || [])
+      .map((comment) => {
+        const commentUser = commentUsersMap.get(comment.user_id);
+        if (!commentUser) {
+          return null;
+        }
+        return {
+          ...comment,
+          user: commentUser,
+        };
+      })
+      .filter(
+        (comment): comment is NonNullable<typeof comment> => comment !== null,
+      );
+
+    // 전체 댓글 수 조회 (페이지네이션용)
+    const { count, error: countError } = await supabase
+      .from("comments")
+      .select("*", { count: "exact", head: true })
+      .eq("post_id", postId);
+
+    if (countError) {
+      console.error("❌ 댓글 수 조회 실패:", countError);
+      // count 에러는 무시하고 진행
+    }
+
+    const total = count || 0;
+    const hasMore = offset + limit < total;
+
+    console.log("✅ 댓글 목록 조회 완료:", {
+      count: commentsWithUsers.length,
+      total,
+      hasMore,
+    });
+    console.groupEnd();
+
+    return NextResponse.json({
+      comments: commentsWithUsers,
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore,
+      },
+    });
+  } catch (error) {
+    console.error("❌ 댓글 목록 조회 API 에러:", error);
+    console.groupEnd();
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        message: "서버 오류가 발생했습니다.",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
+  }
+}
 
 /**
  * POST - 댓글 작성

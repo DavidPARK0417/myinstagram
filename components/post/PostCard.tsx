@@ -552,6 +552,8 @@ export default function PostCard({ post }: PostCardProps) {
           fill
           className="object-cover pointer-events-none"
           sizes="(max-width: 768px) 100vw, 630px"
+          quality={85}
+          loading="lazy"
         />
         {/* 더블탭 큰 하트 애니메이션 */}
         {isDoubleTapAnimating && (
