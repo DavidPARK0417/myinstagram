@@ -85,9 +85,24 @@ export async function GET(
         .eq("clerk_id", clerkUserId)
         .single();
 
+      console.log("🔍 현재 사용자 정보:", {
+        clerkUserId,
+        supabaseUserId: currentUser?.id,
+        error: currentUserError,
+      });
+
       if (!currentUserError && currentUser) {
         // 내 프로필인지 확인
-        isOwnProfile = currentUser.id === userId;
+        // 명시적으로 string 비교 (UUID는 모두 string)
+        isOwnProfile = String(currentUser.id) === String(userId);
+
+        console.log("🔍 프로필 소유자 확인:", {
+          currentUserId: currentUser.id,
+          currentUserIdType: typeof currentUser.id,
+          profileUserId: userId,
+          profileUserIdType: typeof userId,
+          isOwnProfile,
+        });
 
         // 팔로우 상태 확인 (내 프로필이 아닌 경우에만)
         if (!isOwnProfile) {
@@ -98,9 +113,17 @@ export async function GET(
             .eq("following_id", userId)
             .single();
 
+          console.log("🔍 팔로우 상태 확인:", {
+            followId: follow?.id,
+            error: followError,
+            isFollowing: !followError && !!follow,
+          });
+
           if (!followError && follow) {
             isFollowing = true;
           }
+        } else {
+          console.log("✅ 본인 프로필이므로 팔로우 상태 확인 스킵");
         }
       }
     }

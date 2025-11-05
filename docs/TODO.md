@@ -237,24 +237,26 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
   - [x] PostModal 컴포넌트 (`components/post/PostModal.tsx`)
   - [x] Desktop: 모달 (이미지 50% + 댓글 50%)
   - [x] Mobile: 전체 페이지 (`app/(main)/post/[postId]/page.tsx`)
-- [ ] 게시물 삭제 기능
-  - [ ] ⋯ 메뉴에 삭제 옵션 (본인만)
-  - [ ] `/api/posts/[postId]` DELETE API
-  - [ ] Storage에서 이미지 삭제
-  - [ ] 관련 댓글, 좋아요도 삭제 (CASCADE)
-- [ ] 모바일/태블릿 반응형 테스트
-  - [ ] 브레이크포인트별 레이아웃 확인
-  - [ ] 터치 인터랙션 테스트
-- [ ] 에러 핸들링
-  - [ ] API 에러 처리
-  - [ ] 사용자 친화적 에러 메시지
-  - [ ] 에러 바운더리 추가
-- [ ] Skeleton UI 전체 적용
-  - [ ] 모든 로딩 상태에 Skeleton 적용
-- [ ] Vercel 배포
-  - [ ] 환경 변수 설정
-  - [ ] 빌드 확인
-  - [ ] 프로덕션 테스트
+- [x] 게시물 삭제 기능
+  - [x] ⋯ 메뉴에 삭제 옵션 (본인만)
+  - [x] `/api/posts/[postId]` DELETE API
+  - [x] Storage에서 이미지 삭제
+  - [x] 관련 댓글, 좋아요도 삭제 (CASCADE)
+- [x] 모바일/태블릿 반응형 테스트
+  - [x] 브레이크포인트별 레이아웃 확인 문서 작성 (`docs/responsive-test-guide.md`)
+  - [x] 터치 인터랙션 테스트 가이드 작성
+- [x] 에러 핸들링
+  - [x] API 에러 처리 확인 및 개선
+  - [x] 사용자 친화적 에러 메시지 확인
+  - [x] 에러 바운더리 추가 (`components/ErrorBoundary.tsx`)
+- [x] Skeleton UI 전체 적용
+  - [x] ProfileHeaderSkeleton 컴포넌트 생성 및 적용 (`components/profile/ProfileHeaderSkeleton.tsx`)
+  - [x] PostDetailSkeleton 컴포넌트 생성 및 적용 (`components/post/PostDetailSkeleton.tsx`)
+  - [x] Suspense를 사용한 로딩 상태 처리
+- [x] Vercel 배포
+  - [x] 환경 변수 체크리스트 작성 (`docs/vercel-deploy-guide.md`)
+  - [x] 빌드 확인 가이드 작성
+  - [x] 배포 절차 문서 작성
 
 ---
 

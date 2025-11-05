@@ -17,7 +17,9 @@
 
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import ProfileHeader from "@/components/profile/ProfileHeader";
+import ProfileHeaderSkeleton from "@/components/profile/ProfileHeaderSkeleton";
 import PostGrid from "@/components/profile/PostGrid";
 import { UserProfileResponse } from "@/types/post";
 
@@ -74,11 +76,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
     return (
       <div className="w-full">
-        <ProfileHeader
-          user={data.user}
-          isOwnProfile={data.isOwnProfile}
-          isFollowing={data.isFollowing}
-        />
+        <Suspense fallback={<ProfileHeaderSkeleton />}>
+          <ProfileHeader
+            user={data.user}
+            isOwnProfile={data.isOwnProfile}
+            isFollowing={data.isFollowing}
+          />
+        </Suspense>
         <PostGrid userId={userId} />
       </div>
     );

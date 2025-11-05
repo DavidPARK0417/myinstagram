@@ -18,8 +18,9 @@
  * - types/post: 타입 정의
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useUser } from "@clerk/nextjs";
 import { ProfileInfo } from "@/types/post";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +32,37 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({
   user,
-  isOwnProfile,
+  isOwnProfile: initialIsOwnProfile,
   isFollowing: initialIsFollowing,
 }: ProfileHeaderProps) {
+  // Clerk 사용자 정보로 이중 확인
+  const { user: clerkUser } = useUser();
+  const [isOwnProfile, setIsOwnProfile] = useState(initialIsOwnProfile);
+
+  // 클라이언트 측에서도 본인 프로필 확인 (이중 방어)
+  useEffect(() => {
+    if (clerkUser) {
+      // Clerk ID를 사용한 추가 확인
+      const isOwn = user.clerk_id === clerkUser.id;
+
+      console.log("🔍 [ProfileHeader] 프로필 소유자 확인:", {
+        profileClerkId: user.clerk_id,
+        currentClerkId: clerkUser.id,
+        initialIsOwnProfile,
+        calculatedIsOwnProfile: isOwn,
+        mismatch: initialIsOwnProfile !== isOwn,
+      });
+
+      if (initialIsOwnProfile !== isOwn) {
+        console.warn(
+          "⚠️ [ProfileHeader] isOwnProfile 값 불일치 감지! 클라이언트 측 값으로 수정합니다.",
+        );
+        setIsOwnProfile(isOwn);
+      } else {
+        setIsOwnProfile(initialIsOwnProfile);
+      }
+    }
+  }, [clerkUser, user.clerk_id, initialIsOwnProfile]);
   // 팔로우 상태 관리
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,10 +76,20 @@ export default function ProfileHeader({
   const handleFollowClick = async () => {
     if (isLoading) return;
 
+    // 자기 자신 팔로우 방지 (클라이언트 측 방어)
+    if (isOwnProfile) {
+      console.warn("⚠️ 자기 자신을 팔로우할 수 없습니다.");
+      return;
+    }
+
     console.group(`[ProfileHeader] 팔로우 버튼 클릭 - user_id: ${user.id}`);
-    console.log("현재 상태:", { isFollowing, followersCount });
+    console.log("현재 상태:", { isFollowing, followersCount, isOwnProfile });
 
     setIsLoading(true);
+
+    // 원래 상태 저장 (롤백용)
+    const originalIsFollowing = isFollowing;
+    const originalFollowersCount = followersCount;
 
     try {
       const url = "/api/follows";
@@ -82,14 +121,56 @@ export default function ProfileHeader({
         ok: response.ok,
       });
 
-      const data = await response.json();
+      // 응답 본문 파싱
+      let data: any = {};
+      try {
+        const responseText = await response.text();
+        console.log("📄 응답 본문 (raw):", responseText);
+
+        if (responseText) {
+          try {
+            data = JSON.parse(responseText);
+            console.log("📦 파싱된 데이터:", data);
+          } catch (parseError) {
+            console.error("❌ JSON 파싱 실패:", parseError);
+            // 파싱 실패 시에도 상태 코드로 에러 판단
+            if (!response.ok) {
+              throw new Error("서버 응답을 파싱할 수 없습니다.");
+            }
+          }
+        } else {
+          console.warn("⚠️ 응답 본문이 비어있습니다.");
+        }
+      } catch (textError) {
+        console.error("❌ 응답 본문 읽기 실패:", textError);
+        // 응답 본문 읽기 실패 시에도 상태 코드로 판단
+        if (!response.ok) {
+          throw new Error("서버 응답을 읽을 수 없습니다.");
+        }
+      }
 
       if (!response.ok) {
-        console.error("❌ API 호출 실패:", data);
-        // 실패 시 롤백
-        setIsFollowing(isFollowing);
-        setFollowersCount(followersCount);
-        throw new Error(data.message || "팔로우 처리 중 오류가 발생했습니다.");
+        console.error("❌ API 호출 실패:", {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+        });
+
+        // 실패 시 원래 상태로 롤백
+        setIsFollowing(originalIsFollowing);
+        setFollowersCount(originalFollowersCount);
+
+        // 에러 메시지 추출
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          (response.status === 400 && "잘못된 요청입니다.") ||
+          (response.status === 401 && "로그인이 필요합니다.") ||
+          (response.status === 404 && "사용자를 찾을 수 없습니다.") ||
+          (response.status === 409 && "이미 팔로우 중입니다.") ||
+          `팔로우 처리 중 오류가 발생했습니다. (${response.status})`;
+
+        throw new Error(errorMessage);
       }
 
       console.log("✅ 상태 업데이트:", {
@@ -98,6 +179,11 @@ export default function ProfileHeader({
       });
     } catch (error) {
       console.error("❌ 팔로우 처리 오류:", error);
+
+      // 에러 발생 시 원래 상태로 롤백 (이중 방어)
+      setIsFollowing(originalIsFollowing);
+      setFollowersCount(originalFollowersCount);
+
       // 에러 발생 시 사용자에게 알림
       alert(
         error instanceof Error

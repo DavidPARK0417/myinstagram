@@ -17,7 +17,9 @@
 
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import PostModal from "@/components/post/PostModal";
+import PostDetailSkeleton from "@/components/post/PostDetailSkeleton";
 import { PostWithDetails } from "@/types/post";
 
 interface PostDetailPageProps {
@@ -70,7 +72,9 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
     // Mobile에서는 PostModal을 항상 열린 상태로 표시
     return (
       <div className="w-full h-screen">
-        <PostModal post={post} open={true} onOpenChange={() => {}} />
+        <Suspense fallback={<PostDetailSkeleton />}>
+          <PostModal post={post} open={true} onOpenChange={() => {}} />
+        </Suspense>
       </div>
     );
   } catch (error) {
