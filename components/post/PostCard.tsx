@@ -373,7 +373,15 @@ export default function PostCard({ post }: PostCardProps) {
     if (isBookmarkLoading) return;
 
     console.group(`[PostCard] 북마크 버튼 클릭 - post_id: ${post.post_id}`);
-    console.log("현재 상태:", { isBookmarked });
+    console.log("현재 상태:", { isBookmarked, isLoggedIn: !!clerkUser });
+
+    // 로그인 확인
+    if (!clerkUser) {
+      console.log("⚠️ 로그인 필요 - 로그인 페이지로 이동");
+      console.groupEnd();
+      router.push("/sign-in");
+      return;
+    }
 
     setIsBookmarkLoading(true);
 

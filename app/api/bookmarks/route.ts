@@ -54,18 +54,38 @@ export async function POST(request: NextRequest) {
     const supabase = createClerkSupabaseClient();
 
     // 현재 사용자의 Supabase user ID 조회
+    console.log("🔍 Supabase users 테이블 조회:", { clerkUserId });
     const { data: currentUser, error: userError } = await supabase
       .from("users")
       .select("id")
       .eq("clerk_id", clerkUserId)
       .single();
 
-    if (userError || !currentUser) {
-      console.error("❌ 사용자 조회 실패:", userError);
+    if (userError) {
+      console.error("❌ users 테이블 조회 에러:", {
+        code: userError.code,
+        message: userError.message,
+        details: userError.details,
+        hint: userError.hint,
+      });
+      return NextResponse.json(
+        {
+          error: "Database Error",
+          message: "사용자 정보 조회 중 데이터베이스 오류가 발생했습니다.",
+          details: `Code: ${userError.code}, Message: ${userError.message}`,
+          hint: userError.hint || "users 테이블 또는 RLS 설정을 확인하세요.",
+        },
+        { status: 500 },
+      );
+    }
+
+    if (!currentUser) {
+      console.error("❌ 사용자 미존재:", { clerkUserId });
       return NextResponse.json(
         {
           error: "User Not Found",
-          message: "사용자 정보를 찾을 수 없습니다.",
+          message: "Supabase users 테이블에 사용자가 존재하지 않습니다.",
+          hint: "로그인 후 홈 페이지를 방문하여 사용자 동기화를 완료하세요.",
         },
         { status: 404 },
       );
@@ -73,65 +93,42 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ 사용자 조회 성공:", currentUser.id);
 
-    // 중복 체크: 이미 북마크를 눌렀는지 확인
-    const { data: existingBookmark, error: checkError } = await supabase
+    // 북마크 추가 (중복 시 갱신 없이 유지) - 원자적 처리
+    console.log("📝 북마크 upsert 시작:", { post_id, user_id: currentUser.id });
+    const { data: bookmark, error: upsertError } = await supabase
       .from("bookmarks")
+      .upsert(
+        { post_id, user_id: currentUser.id },
+        { onConflict: "post_id,user_id", ignoreDuplicates: true },
+      )
       .select("id")
-      .eq("post_id", post_id)
-      .eq("user_id", currentUser.id)
       .maybeSingle();
 
-    if (checkError) {
-      console.error("❌ 중복 체크 실패:", checkError);
+    if (upsertError) {
+      console.error("❌ bookmarks 테이블 upsert 에러:", {
+        code: upsertError.code,
+        message: upsertError.message,
+        details: upsertError.details,
+        hint: upsertError.hint,
+      });
       return NextResponse.json(
         {
           error: "Database Error",
-          message: "북마크 상태를 확인하는 중 오류가 발생했습니다.",
-          details: checkError.message,
+          message: "북마크 추가 중 데이터베이스 오류가 발생했습니다.",
+          details: `Code: ${upsertError.code}, Message: ${upsertError.message}`,
+          hint:
+            upsertError.hint || "bookmarks 테이블 또는 RLS 설정을 확인하세요.",
         },
         { status: 500 },
       );
     }
 
-    if (existingBookmark) {
-      console.log("⚠️ 이미 북마크를 눌렀습니다:", existingBookmark.id);
-      return NextResponse.json(
-        {
-          error: "Already Bookmarked",
-          message: "이미 북마크를 눌렀습니다.",
-        },
-        { status: 409 },
-      );
-    }
-
-    // 북마크 추가
-    const { data: bookmark, error: insertError } = await supabase
-      .from("bookmarks")
-      .insert({
-        post_id,
-        user_id: currentUser.id,
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error("❌ 북마크 추가 실패:", insertError);
-      return NextResponse.json(
-        {
-          error: "Database Error",
-          message: "북마크 추가 중 오류가 발생했습니다.",
-          details: insertError.message,
-        },
-        { status: 500 },
-      );
-    }
-
-    console.log("✅ 북마크 추가 성공:", bookmark.id);
+    console.log("✅ 북마크 처리 성공:", bookmark?.id);
     console.groupEnd();
 
     return NextResponse.json({
       success: true,
-      bookmark,
+      bookmark: bookmark ?? null,
       message: "북마크가 추가되었습니다.",
     });
   } catch (error) {
@@ -183,18 +180,38 @@ export async function DELETE(request: NextRequest) {
     const supabase = createClerkSupabaseClient();
 
     // 현재 사용자의 Supabase user ID 조회
+    console.log("🔍 Supabase users 테이블 조회:", { clerkUserId });
     const { data: currentUser, error: userError } = await supabase
       .from("users")
       .select("id")
       .eq("clerk_id", clerkUserId)
       .single();
 
-    if (userError || !currentUser) {
-      console.error("❌ 사용자 조회 실패:", userError);
+    if (userError) {
+      console.error("❌ users 테이블 조회 에러:", {
+        code: userError.code,
+        message: userError.message,
+        details: userError.details,
+        hint: userError.hint,
+      });
+      return NextResponse.json(
+        {
+          error: "Database Error",
+          message: "사용자 정보 조회 중 데이터베이스 오류가 발생했습니다.",
+          details: `Code: ${userError.code}, Message: ${userError.message}`,
+          hint: userError.hint || "users 테이블 또는 RLS 설정을 확인하세요.",
+        },
+        { status: 500 },
+      );
+    }
+
+    if (!currentUser) {
+      console.error("❌ 사용자 미존재:", { clerkUserId });
       return NextResponse.json(
         {
           error: "User Not Found",
-          message: "사용자 정보를 찾을 수 없습니다.",
+          message: "Supabase users 테이블에 사용자가 존재하지 않습니다.",
+          hint: "로그인 후 홈 페이지를 방문하여 사용자 동기화를 완료하세요.",
         },
         { status: 404 },
       );
@@ -203,6 +220,7 @@ export async function DELETE(request: NextRequest) {
     console.log("✅ 사용자 조회 성공:", currentUser.id);
 
     // 북마크 삭제
+    console.log("📝 북마크 delete 시작:", { post_id, user_id: currentUser.id });
     const { error: deleteError } = await supabase
       .from("bookmarks")
       .delete()
@@ -210,12 +228,19 @@ export async function DELETE(request: NextRequest) {
       .eq("user_id", currentUser.id);
 
     if (deleteError) {
-      console.error("❌ 북마크 삭제 실패:", deleteError);
+      console.error("❌ bookmarks 테이블 delete 에러:", {
+        code: deleteError.code,
+        message: deleteError.message,
+        details: deleteError.details,
+        hint: deleteError.hint,
+      });
       return NextResponse.json(
         {
           error: "Database Error",
-          message: "북마크 삭제 중 오류가 발생했습니다.",
-          details: deleteError.message,
+          message: "북마크 삭제 중 데이터베이스 오류가 발생했습니다.",
+          details: `Code: ${deleteError.code}, Message: ${deleteError.message}`,
+          hint:
+            deleteError.hint || "bookmarks 테이블 또는 RLS 설정을 확인하세요.",
         },
         { status: 500 },
       );
