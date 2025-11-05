@@ -5,6 +5,8 @@
  * 검색 기능에서 사용하는 타입들을 정의합니다.
  */
 
+import { User } from "./post";
+
 /**
  * 사용자 검색 결과 타입
  */
@@ -17,11 +19,27 @@ export interface UserSearchResult {
 }
 
 /**
+ * 게시물 검색 결과 타입
+ */
+export interface PostSearchResult {
+  id: string;
+  user_id: string;
+  image_url: string;
+  caption: string | null;
+  created_at: string;
+  likes_count: number;
+  comments_count: number;
+  user: User;
+}
+
+/**
  * 검색 결과 응답 타입
  */
 export interface SearchResult {
   users: UserSearchResult[];
-  total: number;
+  posts: PostSearchResult[];
+  usersTotal: number;
+  postsTotal: number;
 }
 
 /**
@@ -30,4 +48,5 @@ export interface SearchResult {
 export interface SearchResponse {
   results: SearchResult;
   query: string;
+  type?: "users" | "posts" | "all"; // 검색 타입
 }

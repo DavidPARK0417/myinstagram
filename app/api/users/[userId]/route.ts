@@ -5,14 +5,18 @@ import { UserProfileResponse } from "@/types/post";
 
 /**
  * @file app/api/users/[userId]/route.ts
- * @description 사용자 프로필 정보 조회 API
+ * @description 사용자 프로필 정보 조회 및 수정 API
  *
- * 이 API는 특정 사용자의 프로필 정보를 조회합니다.
+ * 이 API는 특정 사용자의 프로필 정보를 조회하고 수정합니다.
  *
  * GET: 사용자 프로필 정보 조회
  * - user_stats 뷰 활용 (게시물 수, 팔로워 수, 팔로잉 수)
  * - 현재 사용자가 해당 사용자를 팔로우 중인지 확인
  * - 내 프로필인지 확인
+ *
+ * PATCH: 사용자 프로필 정보 수정
+ * - 사용자 이름 업데이트
+ * - 권한 검증 (본인만 수정 가능)
  *
  * @params
  * - userId: 사용자 ID (UUID)
@@ -155,6 +159,170 @@ export async function GET(
     return NextResponse.json(response);
   } catch (error) {
     console.error("❌ 사용자 프로필 조회 에러:", error);
+    console.groupEnd();
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        message: "서버 오류가 발생했습니다.",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * PATCH: 사용자 프로필 정보 수정
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> },
+) {
+  try {
+    console.group("[API] PATCH /api/users/[userId] - 프로필 업데이트 시작");
+
+    const { userId } = await params;
+    const supabase = createClerkSupabaseClient();
+
+    // 인증 확인
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
+      console.error("❌ 인증되지 않은 사용자");
+      console.groupEnd();
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "로그인이 필요합니다.",
+        },
+        { status: 401 },
+      );
+    }
+
+    // 요청 본문 파싱
+    const body = await request.json();
+    const { name } = body;
+
+    console.log("📝 요청 데이터:", { userId, name });
+
+    // 입력 검증
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      console.error("❌ 이름이 유효하지 않음");
+      console.groupEnd();
+      return NextResponse.json(
+        {
+          error: "Invalid Input",
+          message: "이름을 입력해주세요.",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (name.trim().length > 50) {
+      console.error("❌ 이름이 너무 김");
+      console.groupEnd();
+      return NextResponse.json(
+        {
+          error: "Invalid Input",
+          message: "이름은 50자 이하여야 합니다.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // 현재 사용자의 Supabase user ID 조회
+    const { data: currentUser, error: currentUserError } = await supabase
+      .from("users")
+      .select("id, clerk_id")
+      .eq("clerk_id", clerkUserId)
+      .single();
+
+    if (currentUserError || !currentUser) {
+      console.error("❌ 현재 사용자 조회 실패:", currentUserError);
+      console.groupEnd();
+      return NextResponse.json(
+        {
+          error: "User Not Found",
+          message: "사용자를 찾을 수 없습니다.",
+          details: currentUserError?.message,
+        },
+        { status: 404 },
+      );
+    }
+
+    // 권한 검증: 본인만 수정 가능
+    if (String(currentUser.id) !== String(userId)) {
+      console.error("❌ 권한 없음:", {
+        currentUserId: currentUser.id,
+        targetUserId: userId,
+      });
+      console.groupEnd();
+      return NextResponse.json(
+        {
+          error: "Forbidden",
+          message: "본인의 프로필만 수정할 수 있습니다.",
+        },
+        { status: 403 },
+      );
+    }
+
+    // 사용자 정보 업데이트
+    const { data: updatedUser, error: updateError } = await supabase
+      .from("users")
+      .update({ name: name.trim() })
+      .eq("id", userId)
+      .select("id, clerk_id, name, created_at")
+      .single();
+
+    if (updateError || !updatedUser) {
+      console.error("❌ 프로필 업데이트 실패:", updateError);
+      console.groupEnd();
+      return NextResponse.json(
+        {
+          error: "Update Failed",
+          message: "프로필 업데이트 중 오류가 발생했습니다.",
+          details: updateError?.message,
+        },
+        { status: 500 },
+      );
+    }
+
+    // user_stats 뷰에서 업데이트된 통계 정보 조회
+    const { data: userStats, error: userStatsError } = await supabase
+      .from("user_stats")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (userStatsError || !userStats) {
+      console.error("❌ 사용자 통계 조회 실패:", userStatsError);
+      // 통계 조회 실패해도 사용자 정보는 업데이트되었으므로 반환
+    }
+
+    // 응답 데이터 구성
+    const response: UserProfileResponse = {
+      user: {
+        id: updatedUser.id,
+        user_id: updatedUser.id,
+        clerk_id: updatedUser.clerk_id,
+        name: updatedUser.name,
+        posts_count: userStats?.posts_count || 0,
+        followers_count: userStats?.followers_count || 0,
+        following_count: userStats?.following_count || 0,
+        created_at: updatedUser.created_at,
+      },
+      isOwnProfile: true,
+      isFollowing: false,
+    };
+
+    console.log("✅ 프로필 업데이트 성공:", {
+      userId: updatedUser.id,
+      name: updatedUser.name,
+    });
+    console.groupEnd();
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("❌ 프로필 업데이트 에러:", error);
     console.groupEnd();
     return NextResponse.json(
       {

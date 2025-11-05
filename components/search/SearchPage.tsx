@@ -8,27 +8,35 @@
  *
  * 주요 기능:
  * 1. 검색 입력 필드
- * 2. 실시간 검색 (debounce 적용, 300ms)
- * 3. 검색 결과 목록 표시
- * 4. 로딩 스켈레톤 UI
- * 5. 검색 결과 없음 상태 처리
+ * 2. 검색 타입 선택 탭 (사용자/게시물)
+ * 3. 실시간 검색 (debounce 적용, 300ms)
+ * 4. 검색 결과 목록 표시 (사용자/게시물)
+ * 5. 로딩 스켈레톤 UI
+ * 6. 검색 결과 없음 상태 처리
  *
  * @dependencies
  * - components/search/UserSearchResult: 사용자 검색 결과 아이템
+ * - components/search/PostSearchResult: 게시물 검색 결과 아이템
  * - types/search: 타입 정의
  * - lucide-react: 아이콘 라이브러리
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, Loader2 } from "lucide-react";
-import { UserSearchResult as UserSearchResultType } from "@/types/search";
+import {
+  UserSearchResult as UserSearchResultType,
+  PostSearchResult as PostSearchResultType,
+} from "@/types/search";
 import UserSearchResult from "./UserSearchResult";
+import PostSearchResult from "./PostSearchResult";
 import { cn } from "@/lib/utils";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<UserSearchResultType[]>([]);
+  const [searchType, setSearchType] = useState<"users" | "posts">("users");
+  const [userResults, setUserResults] = useState<UserSearchResultType[]>([]);
+  const [postResults, setPostResults] = useState<PostSearchResultType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,61 +44,70 @@ export default function SearchPage() {
   /**
    * 검색 API 호출
    */
-  const performSearch = useCallback(async (searchTerm: string) => {
-    if (!searchTerm.trim()) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
-
-    console.group("[SearchPage] 검색 실행");
-    console.log("검색어:", searchTerm);
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(searchTerm)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("❌ 검색 실패:", response.status, errorData);
-        throw new Error(
-          errorData.message ||
-            `검색 중 오류가 발생했습니다. (${response.status})`,
-        );
+  const performSearch = useCallback(
+    async (searchTerm: string, type: "users" | "posts") => {
+      if (!searchTerm.trim()) {
+        setUserResults([]);
+        setPostResults([]);
+        setIsLoading(false);
+        return;
       }
 
-      const data = await response.json();
-      const users: UserSearchResultType[] = data.results?.users || [];
+      console.group("[SearchPage] 검색 실행");
+      console.log("검색어:", searchTerm, "타입:", type);
 
-      console.log("✅ 검색 성공:", {
-        query: searchTerm,
-        resultsCount: users.length,
-      });
-      console.groupEnd();
+      setIsLoading(true);
+      setError(null);
 
-      setResults(users);
-    } catch (err) {
-      console.error("❌ 검색 오류:", err);
-      console.groupEnd();
-      setError(
-        err instanceof Error ? err.message : "검색 중 오류가 발생했습니다.",
-      );
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      try {
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(searchTerm)}&type=${type}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          },
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("❌ 검색 실패:", response.status, errorData);
+          throw new Error(
+            errorData.message ||
+              `검색 중 오류가 발생했습니다. (${response.status})`,
+          );
+        }
+
+        const data = await response.json();
+        const users: UserSearchResultType[] = data.results?.users || [];
+        const posts: PostSearchResultType[] = data.results?.posts || [];
+
+        console.log("✅ 검색 성공:", {
+          query: searchTerm,
+          type,
+          usersCount: users.length,
+          postsCount: posts.length,
+        });
+        console.groupEnd();
+
+        setUserResults(users);
+        setPostResults(posts);
+      } catch (err) {
+        console.error("❌ 검색 오류:", err);
+        console.groupEnd();
+        setError(
+          err instanceof Error ? err.message : "검색 중 오류가 발생했습니다.",
+        );
+        setUserResults([]);
+        setPostResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   /**
    * Debounce를 적용한 검색 실행
@@ -103,7 +120,8 @@ export default function SearchPage() {
 
     // 검색어가 비어있으면 결과 초기화
     if (!query.trim()) {
-      setResults([]);
+      setUserResults([]);
+      setPostResults([]);
       setIsLoading(false);
       return;
     }
@@ -112,7 +130,7 @@ export default function SearchPage() {
     setIsLoading(true);
     debounceTimerRef.current = setTimeout(() => {
       setSearchQuery(query);
-      performSearch(query);
+      performSearch(query, searchType);
     }, 300);
 
     // 클린업 함수
@@ -121,7 +139,7 @@ export default function SearchPage() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, performSearch]);
+  }, [query, searchType, performSearch]);
 
   /**
    * 검색어 입력 핸들러
@@ -130,6 +148,18 @@ export default function SearchPage() {
     const value = e.target.value;
     setQuery(value);
     setError(null);
+  };
+
+  /**
+   * 검색 타입 변경 핸들러
+   */
+  const handleTypeChange = (type: "users" | "posts") => {
+    setSearchType(type);
+    setError(null);
+    // 검색어가 있으면 즉시 검색 실행
+    if (query.trim()) {
+      performSearch(query, type);
+    }
   };
 
   return (
@@ -156,6 +186,40 @@ export default function SearchPage() {
         </div>
       </div>
 
+      {/* 검색 타입 선택 탭 */}
+      {query.trim() && (
+        <div className="mb-4 flex items-center gap-1 border-b border-[#dbdbdb]">
+          <button
+            onClick={() => handleTypeChange("users")}
+            className={cn(
+              "px-4 py-2 text-sm font-semibold transition-colors relative",
+              searchType === "users"
+                ? "text-[#262626]"
+                : "text-[#8e8e8e] hover:text-[#262626]",
+            )}
+          >
+            사용자
+            {searchType === "users" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#262626]" />
+            )}
+          </button>
+          <button
+            onClick={() => handleTypeChange("posts")}
+            className={cn(
+              "px-4 py-2 text-sm font-semibold transition-colors relative",
+              searchType === "posts"
+                ? "text-[#262626]"
+                : "text-[#8e8e8e] hover:text-[#262626]",
+            )}
+          >
+            게시물
+            {searchType === "posts" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#262626]" />
+            )}
+          </button>
+        </div>
+      )}
+
       {/* 검색 결과 영역 */}
       <div className="space-y-2">
         {/* 로딩 상태 */}
@@ -177,7 +241,8 @@ export default function SearchPage() {
           !error &&
           query.trim() &&
           searchQuery.trim() &&
-          results.length === 0 && (
+          ((searchType === "users" && userResults.length === 0) ||
+            (searchType === "posts" && postResults.length === 0)) && (
             <div className="flex flex-col items-center justify-center py-12">
               <p className="text-sm font-semibold text-[#262626] mb-1">
                 검색 결과가 없습니다
@@ -194,19 +259,36 @@ export default function SearchPage() {
             <Search className="w-12 h-12 text-[#8e8e8e] mb-3" />
             <p className="text-sm font-semibold text-[#262626] mb-1">검색</p>
             <p className="text-xs text-[#8e8e8e]">
-              사용자 이름을 검색해보세요.
+              사용자 이름 또는 게시물 캡션을 검색해보세요.
             </p>
           </div>
         )}
 
-        {/* 검색 결과 목록 */}
-        {!isLoading && !error && query.trim() && results.length > 0 && (
-          <div className="bg-white rounded-lg border border-[#dbdbdb] divide-y divide-[#dbdbdb]">
-            {results.map((user) => (
-              <UserSearchResult key={user.id} user={user} />
-            ))}
-          </div>
-        )}
+        {/* 사용자 검색 결과 목록 */}
+        {!isLoading &&
+          !error &&
+          query.trim() &&
+          searchType === "users" &&
+          userResults.length > 0 && (
+            <div className="bg-white rounded-lg border border-[#dbdbdb] divide-y divide-[#dbdbdb]">
+              {userResults.map((user) => (
+                <UserSearchResult key={user.id} user={user} />
+              ))}
+            </div>
+          )}
+
+        {/* 게시물 검색 결과 목록 */}
+        {!isLoading &&
+          !error &&
+          query.trim() &&
+          searchType === "posts" &&
+          postResults.length > 0 && (
+            <div className="bg-white rounded-lg border border-[#dbdbdb] divide-y divide-[#dbdbdb]">
+              {postResults.map((post) => (
+                <PostSearchResult key={post.id} post={post} />
+              ))}
+            </div>
+          )}
       </div>
     </div>
   );

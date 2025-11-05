@@ -11,11 +11,13 @@
  * 2. 사용자명, 전체 이름
  * 3. 통계 (게시물 수, 팔로워 수, 팔로잉 수)
  * 4. "팔로우" 또는 "팔로잉" 버튼 (다른 사람 프로필일 때)
- * 5. 팔로우/언팔로우 기능
+ * 5. "프로필 편집" 버튼 (내 프로필일 때)
+ * 6. 팔로우/언팔로우 기능
  *
  * @dependencies
  * - next/image: 이미지 컴포넌트
  * - types/post: 타입 정의
+ * - components/profile/EditProfileModal: 프로필 편집 모달
  */
 
 import { useState, useEffect } from "react";
@@ -23,6 +25,7 @@ import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { ProfileInfo } from "@/types/post";
 import { cn } from "@/lib/utils";
+import EditProfileModal from "./EditProfileModal";
 
 interface ProfileHeaderProps {
   user: ProfileInfo;
@@ -69,6 +72,15 @@ export default function ProfileHeader({
   const [followersCount, setFollowersCount] = useState(
     user.followers_count || 0,
   );
+
+  // 프로필 편집 모달 상태 관리
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<ProfileInfo>(user);
+
+  // 사용자 정보 업데이트 핸들러
+  const handleUserUpdate = (updatedUser: ProfileInfo) => {
+    setCurrentUser(updatedUser);
+  };
 
   /**
    * 팔로우 버튼 클릭 핸들러
@@ -201,17 +213,17 @@ export default function ProfileHeader({
       {/* 프로필 이미지 (150px Desktop / 90px Mobile) */}
       <div className="flex-shrink-0 flex justify-center md:justify-start">
         <div className="w-[90px] h-[90px] md:w-[150px] md:h-[150px] rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-          {user.image_url ? (
+          {currentUser.image_url ? (
             <Image
-              src={user.image_url}
-              alt={user.name}
+              src={currentUser.image_url}
+              alt={currentUser.name}
               width={150}
               height={150}
               className="w-full h-full object-cover"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600 text-2xl md:text-4xl font-semibold">
-              {user.name.charAt(0).toUpperCase()}
+              {currentUser.name.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
@@ -222,11 +234,24 @@ export default function ProfileHeader({
         {/* 사용자명 + 버튼 */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <h1 className="text-xl md:text-2xl font-semibold text-[#262626]">
-            {user.name}
+            {currentUser.name}
           </h1>
 
           {/* 버튼 영역 */}
-          {!isOwnProfile && (
+          {isOwnProfile ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className={cn(
+                  "px-4 py-1.5 rounded-md text-sm font-semibold transition-all",
+                  "bg-[#efefef] text-[#262626] hover:bg-[#dbdbdb]",
+                  "border border-[#dbdbdb]",
+                )}
+              >
+                프로필 편집
+              </button>
+            </div>
+          ) : (
             <div className="flex items-center gap-2">
               <button
                 onClick={handleFollowClick}
@@ -279,9 +304,17 @@ export default function ProfileHeader({
 
         {/* 전체 이름 (name 필드 사용) */}
         <div>
-          <p className="font-semibold text-[#262626]">{user.name}</p>
+          <p className="font-semibold text-[#262626]">{currentUser.name}</p>
         </div>
       </div>
+
+      {/* 프로필 편집 모달 */}
+      <EditProfileModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        user={currentUser}
+        onUpdate={handleUserUpdate}
+      />
     </div>
   );
 }
