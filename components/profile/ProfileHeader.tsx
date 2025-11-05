@@ -121,7 +121,6 @@ export default function ProfileHeader({
 
   // 팔로워 버튼 클릭 핸들러
   const handleFollowersClick = () => {
-    if (!isOwnProfile) return; // 내 프로필에서만 클릭 가능
     console.log("🔄 [ProfileHeader] 팔로워 버튼 클릭");
     setFollowListModalTab("followers");
     setIsFollowListModalOpen(true);
@@ -129,7 +128,6 @@ export default function ProfileHeader({
 
   // 팔로잉 버튼 클릭 핸들러
   const handleFollowingClick = () => {
-    if (!isOwnProfile) return; // 내 프로필에서만 클릭 가능
     console.log("🔄 [ProfileHeader] 팔로잉 버튼 클릭");
     setFollowListModalTab("following");
     setIsFollowListModalOpen(true);
@@ -351,12 +349,8 @@ export default function ProfileHeader({
           </div>
           <button
             onClick={handleFollowersClick}
-            disabled={!isOwnProfile}
             className={cn(
-              "flex items-center gap-1 transition-opacity",
-              isOwnProfile
-                ? "hover:opacity-50 cursor-pointer"
-                : "cursor-default opacity-100",
+              "flex items-center gap-1 transition-opacity hover:opacity-50 cursor-pointer",
             )}
           >
             <span className="font-semibold text-[#262626]">
@@ -366,12 +360,8 @@ export default function ProfileHeader({
           </button>
           <button
             onClick={handleFollowingClick}
-            disabled={!isOwnProfile}
             className={cn(
-              "flex items-center gap-1 transition-opacity",
-              isOwnProfile
-                ? "hover:opacity-50 cursor-pointer"
-                : "cursor-default opacity-100",
+              "flex items-center gap-1 transition-opacity hover:opacity-50 cursor-pointer",
             )}
           >
             <span className="font-semibold text-[#262626]">
@@ -395,16 +385,15 @@ export default function ProfileHeader({
         onUpdate={handleUserUpdate}
       />
 
-      {/* 팔로워/팔로잉 목록 모달 */}
-      {isOwnProfile && (
-        <FollowListModal
-          open={isFollowListModalOpen}
-          onOpenChange={setIsFollowListModalOpen}
-          userId={user.id}
-          initialTab={followListModalTab}
-          onUnfollow={handleUnfollow}
-        />
-      )}
+      {/* 팔로워/팔로잉 목록 모달 (모든 프로필에서 열 수 있음) */}
+      <FollowListModal
+        open={isFollowListModalOpen}
+        onOpenChange={setIsFollowListModalOpen}
+        userId={user.id}
+        initialTab={followListModalTab}
+        onUnfollow={handleUnfollow}
+        isOwnProfile={isOwnProfile}
+      />
     </div>
   );
 }

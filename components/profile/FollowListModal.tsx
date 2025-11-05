@@ -25,6 +25,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ interface FollowListModalProps {
   userId: string;
   initialTab?: "followers" | "following";
   onUnfollow?: () => void;
+  isOwnProfile?: boolean; // 내 프로필에서 열렸는지 여부
 }
 
 export default function FollowListModal({
@@ -49,7 +51,9 @@ export default function FollowListModal({
   userId,
   initialTab = "followers",
   onUnfollow,
+  isOwnProfile = false,
 }: FollowListModalProps) {
+  const { user: clerkUser } = useUser();
   const [activeTab, setActiveTab] = useState<"followers" | "following">(
     initialTab,
   );
@@ -200,6 +204,74 @@ export default function FollowListModal({
     }
   };
 
+  // 팔로우/언팔로우 토글 핸들러 (두 탭 공통)
+  const handleToggleFollow = async (
+    targetUserId: string,
+    willFollow: boolean,
+  ) => {
+    console.group(
+      `[FollowListModal] 팔로우 토글 시작 - target: ${targetUserId}, willFollow: ${willFollow}`,
+    );
+
+    try {
+      const response = await fetch("/api/follows", {
+        method: willFollow ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ following_id: targetUserId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ API 호출 실패:", errorData);
+        throw new Error(
+          errorData.message || "팔로우 상태를 변경하는 중 오류가 발생했습니다.",
+        );
+      }
+
+      // UI 업데이트: 현재 탭의 목록에서 플래그 토글
+      if (activeTab === "followers") {
+        setFollowers((prev) =>
+          prev.map((u) =>
+            u.id === targetUserId
+              ? { ...u, isFollowedByViewer: willFollow }
+              : u,
+          ),
+        );
+      } else {
+        // following 탭
+        if (!willFollow && isOwnProfile) {
+          // 내 프로필의 팔로잉 탭에서 언팔로우 시 항목 제거
+          setFollowing((prev) => prev.filter((u) => u.id !== targetUserId));
+          if (onUnfollow) onUnfollow();
+        } else {
+          setFollowing((prev) =>
+            prev.map((u) =>
+              u.id === targetUserId
+                ? { ...u, isFollowedByViewer: willFollow }
+                : u,
+            ),
+          );
+        }
+      }
+
+      console.log("✅ 팔로우 토글 성공", {
+        targetUserId,
+        willFollow,
+        tab: activeTab,
+      });
+      router.refresh();
+    } catch (error) {
+      console.error("❌ 팔로우 토글 오류:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "팔로우 상태를 변경하는 중 오류가 발생했습니다.",
+      );
+    } finally {
+      console.groupEnd();
+    }
+  };
+
   const currentList = activeTab === "followers" ? followers : following;
   const isLoading =
     activeTab === "followers" ? isLoadingFollowers : isLoadingFollowing;
@@ -300,22 +372,24 @@ export default function FollowListModal({
                     </p>
                   </Link>
 
-                  {/* 언팔로우 버튼 (팔로잉 탭에만 표시) */}
-                  {activeTab === "following" && (
+                  {/* 액션 버튼 (두 탭 공통: 팔로우/언팔로우) - 본인 계정이면 버튼 숨김 */}
+                  {user.clerk_id !== clerkUser?.id && (
                     <Button
-                      onClick={() => handleUnfollow(user.id)}
-                      disabled={unfollowingUserId === user.id}
+                      onClick={() =>
+                        handleToggleFollow(
+                          user.id,
+                          !(user.isFollowedByViewer === true),
+                        )
+                      }
                       variant="outline"
                       size="sm"
                       className={cn(
                         "px-4 py-1.5 h-8 text-sm font-semibold rounded-md",
                         "bg-white text-[#262626] border border-[#dbdbdb]",
-                        "hover:bg-[#fafafa] disabled:opacity-50",
+                        "hover:bg-[#fafafa]",
                       )}
                     >
-                      {unfollowingUserId === user.id
-                        ? "처리 중..."
-                        : "언팔로우"}
+                      {user.isFollowedByViewer ? "언팔로우" : "팔로우"}
                     </Button>
                   )}
                 </div>

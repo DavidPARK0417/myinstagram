@@ -69,22 +69,7 @@ export async function GET(
       );
     }
 
-    // 권한 검증: 내 프로필만 조회 가능
-    const isOwnProfile = String(currentUser.id) === String(userId);
-    if (!isOwnProfile) {
-      console.error("❌ 권한 없음:", {
-        currentUserId: currentUser.id,
-        targetUserId: userId,
-      });
-      console.groupEnd();
-      return NextResponse.json(
-        {
-          error: "Forbidden",
-          message: "본인의 팔로잉 목록만 조회할 수 있습니다.",
-        },
-        { status: 403 },
-      );
-    }
+    // 권한 검증 제거: 로그인 사용자라면 누구의 팔로잉 목록이든 조회 가능 (요청자 선택)
 
     // 팔로잉 목록 조회 (두 단계로 나눠서 조회)
     // 1단계: follows 테이블에서 following_id 목록 조회
@@ -150,6 +135,21 @@ export async function GET(
       return NextResponse.json(response);
     }
 
+    // 현재 로그인 사용자가 팔로우 중인 대상 집합 계산 (isFollowedByViewer)
+    const { data: myFollows, error: myFollowsError } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", currentUser.id)
+      .in("following_id", followingIds);
+
+    if (myFollowsError) {
+      console.error("❌ isFollowedByViewer 집계 실패:", myFollowsError);
+    }
+
+    const myFollowingSet = new Set(
+      (myFollows ?? []).map((r: { following_id: string }) => r.following_id),
+    );
+
     // 사용자 정보 조회 (개별 쿼리로 안전하게 처리)
     const usersList: any[] = [];
 
@@ -181,6 +181,8 @@ export async function GET(
             clerk_id: user.clerk_id,
             name: user.name,
             created_at: user.created_at,
+            // 현재 로그인 사용자가 해당 사용자를 팔로우 중인지 여부
+            isFollowedByViewer: myFollowingSet.has(user.id),
           });
           console.log(`✅ 사용자 ${followingId} 조회 성공:`, user.name);
         }

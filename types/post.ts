@@ -14,6 +14,8 @@ export interface User {
   name: string;
   created_at: string;
   image_url?: string; // Clerk 프로필 이미지 URL (optional)
+  // 현재 로그인한 사용자가 이 사용자를 팔로우 중인지 여부 (팔로워/팔로잉 목록에서 사용)
+  isFollowedByViewer?: boolean;
 }
 
 /**
