@@ -216,6 +216,47 @@ export default function PostCard({ post }: PostCardProps) {
     }
   };
 
+  /**
+   * 공유 버튼 클릭 핸들러
+   */
+  const handleShareClick = async () => {
+    console.group(`[PostCard] 공유 버튼 클릭 - post_id: ${post.post_id}`);
+
+    // 공유할 URL 생성
+    const shareUrl = `${window.location.origin}/post/${post.post_id}`;
+    console.log("공유 URL:", shareUrl);
+
+    try {
+      // Web Share API 지원 확인 (주로 모바일)
+      if (navigator.share) {
+        console.log("Web Share API 사용");
+        await navigator.share({
+          title: `${post.user.name}님의 게시물`,
+          text: post.caption || "게시물 보기",
+          url: shareUrl,
+        });
+        console.log("✅ 공유 완료");
+      } else {
+        // Web Share API를 지원하지 않는 경우 클립보드로 복사
+        console.log("클립보드 복사 사용");
+        await navigator.clipboard.writeText(shareUrl);
+        alert("링크가 복사되었습니다!");
+        console.log("✅ 링크 복사 완료");
+      }
+    } catch (error) {
+      // AbortError는 사용자가 공유를 취소한 경우이므로 무시
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("사용자가 공유를 취소했습니다.");
+      } else {
+        console.error("❌ 공유 실패:", error);
+        // 클립보드 복사도 실패한 경우
+        alert("공유에 실패했습니다. 다시 시도해주세요.");
+      }
+    } finally {
+      console.groupEnd();
+    }
+  };
+
   return (
     <article className="bg-white border border-[#dbdbdb] rounded-lg mb-4">
       {/* 헤더 섹션 (60px) */}
@@ -313,11 +354,11 @@ export default function PostCard({ post }: PostCardProps) {
           >
             <MessageCircle className="w-6 h-6" />
           </button>
-          {/* 공유 버튼 (UI만) */}
+          {/* 공유 버튼 */}
           <button
-            className="text-[#262626] hover:opacity-50 transition-opacity cursor-not-allowed opacity-50"
-            disabled
-            title="공유 기능은 준비 중입니다"
+            onClick={handleShareClick}
+            className="text-[#262626] hover:opacity-50 transition-opacity"
+            title="게시물 공유"
           >
             <Send className="w-6 h-6" />
           </button>

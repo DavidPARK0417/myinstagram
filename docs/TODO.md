@@ -50,7 +50,7 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 - [x] PostCard 컴포넌트 (`components/post/PostCard.tsx`)
   - [x] 헤더 섹션 (프로필 이미지 32px, 사용자명, 시간, ⋯ 메뉴)
   - [x] 이미지 영역 (1:1 정사각형 비율)
-  - [x] 액션 버튼 (❤️ 좋아요, 💬 댓글, ✈️ 공유(UI만), 🔖 북마크(UI만))
+  - [x] 액션 버튼 (❤️ 좋아요, 💬 댓글, ✈️ 공유, 🔖 북마크)
   - [x] 컨텐츠 섹션 (좋아요 수, 캡션, 댓글 미리보기 2개)
   - [x] 캡션 "... 더 보기" 토글 기능
 - [x] PostCardSkeleton 로딩 UI (`components/post/PostCardSkeleton.tsx`)
@@ -86,6 +86,41 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 - [x] 이미지 더블탭 좋아요 기능 (모바일)
   - [x] 더블탭 감지
   - [x] 큰 하트 등장 애니메이션 (fade in/out, 1초)
+
+### 1-5. 공유 및 북마크 기능
+
+#### 공유 기능 (Share)
+
+- [x] 공유 버튼 기능 구현 (`components/post/PostCard.tsx`, `PostModal.tsx`)
+  - [x] Web Share API 구현 (모바일 네이티브 공유)
+  - [x] 클립보드 복사 기능 (데스크톱 대체)
+  - [x] 공유 URL 생성 (`/post/{postId}`)
+  - [x] 에러 처리 및 사용자 피드백
+  - [x] 로그 추가 (디버깅용)
+
+#### 북마크 기능 (Bookmark)
+
+- [ ] `bookmarks` 테이블 생성 (마이그레이션)
+  - [ ] id, post_id, user_id, created_at
+  - [ ] UNIQUE(post_id, user_id) 제약 조건
+  - [ ] 인덱스 생성
+  - [ ] RLS 비활성화 (개발 환경)
+- [ ] `/api/bookmarks` POST API (`app/api/bookmarks/route.ts`)
+  - [ ] 북마크 추가
+  - [ ] 중복 체크
+  - [ ] 에러 처리
+- [ ] `/api/bookmarks` DELETE API
+  - [ ] 북마크 삭제
+  - [ ] 권한 검증
+- [ ] 북마크 버튼 기능 (`components/post/PostCard.tsx`, `PostModal.tsx`)
+  - [ ] 빈 북마크 ↔ 채워진 북마크 상태 전환
+  - [ ] 클릭 시 API 호출 및 즉시 UI 업데이트
+  - [ ] 로딩 상태 처리
+  - [ ] 로그 추가 (디버깅용)
+- [ ] 타입 정의 업데이트 (`types/post.ts`)
+  - [ ] PostWithDetails에 user_bookmarked 필드 추가
+- [ ] `/api/posts` GET API 수정
+  - [ ] 북마크 여부(user_bookmarked) 조회 추가
 
 ---
 
