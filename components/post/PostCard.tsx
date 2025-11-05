@@ -23,6 +23,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Heart,
   MessageCircle,
@@ -33,13 +34,16 @@ import {
 import { PostWithDetails, CommentWithUser } from "@/types/post";
 import { formatRelativeTime } from "@/lib/utils/format-time";
 import { cn } from "@/lib/utils";
+import PostModal from "./PostModal";
 
 interface PostCardProps {
   post: PostWithDetails;
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  const router = useRouter();
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 좋아요 상태 관리
   const [isLiked, setIsLiked] = useState(post.user_liked || false);
@@ -47,6 +51,20 @@ export default function PostCard({ post }: PostCardProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isDoubleTapAnimating, setIsDoubleTapAnimating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  /**
+   * 게시물 클릭 핸들러 (이미지 또는 댓글 "모두 보기" 클릭 시)
+   */
+  const handlePostClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Mobile에서는 페이지로 이동, Desktop에서는 모달 열기
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      router.push(`/post/${post.post_id}`);
+    } else {
+      setIsModalOpen(true);
+    }
+  };
 
   // 더블탭 애니메이션 효과 제어 (fade in/out)
   useEffect(() => {
@@ -245,6 +263,7 @@ export default function PostCard({ post }: PostCardProps) {
       <div
         className="relative aspect-square w-full bg-gray-100 cursor-pointer select-none"
         onDoubleClick={handleDoubleClick}
+        onClick={handlePostClick}
       >
         <Image
           src={post.image_url}
@@ -288,7 +307,10 @@ export default function PostCard({ post }: PostCardProps) {
             />
           </button>
           {/* 댓글 버튼 */}
-          <button className="text-[#262626] hover:opacity-50 transition-opacity">
+          <button
+            onClick={handlePostClick}
+            className="text-[#262626] hover:opacity-50 transition-opacity"
+          >
             <MessageCircle className="w-6 h-6" />
           </button>
           {/* 공유 버튼 (UI만) */}
@@ -345,12 +367,12 @@ export default function PostCard({ post }: PostCardProps) {
           <div className="space-y-1">
             {/* "댓글 N개 모두 보기" 링크 */}
             {post.comments_count > 2 && (
-              <Link
-                href={`/post/${post.post_id}`}
-                className="text-sm text-[#8e8e8e] hover:text-[#262626] transition-colors"
+              <button
+                onClick={handlePostClick}
+                className="text-sm text-[#8e8e8e] hover:text-[#262626] transition-colors text-left"
               >
                 댓글 {post.comments_count}개 모두 보기
-              </Link>
+              </button>
             )}
             {/* 최신 댓글 2개 미리보기 */}
             {previewComments.map((comment) => (
@@ -367,6 +389,9 @@ export default function PostCard({ post }: PostCardProps) {
           </div>
         )}
       </div>
+
+      {/* 게시물 상세 모달 (Desktop) */}
+      <PostModal post={post} open={isModalOpen} onOpenChange={setIsModalOpen} />
     </article>
   );
 }

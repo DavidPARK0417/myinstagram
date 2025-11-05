@@ -121,7 +121,7 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 - [x] CommentList 컴포넌트 (`components/comment/CommentList.tsx`)
   - [x] 댓글 목록 표시
   - [x] PostCard: 최신 2개 미리보기
-  - [ ] 상세 모달: 전체 댓글 + 스크롤 (2-4 단계)
+  - [x] 상세 모달: 전체 댓글 + 스크롤
 - [x] CommentForm 컴포넌트 (`components/comment/CommentForm.tsx`)
   - [x] "댓글 달기..." 입력창
   - [x] Enter 또는 "게시" 버튼으로 제출
@@ -134,17 +134,17 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 2-4. 댓글 기능 - 삭제 & 무한스크롤
 
-- [ ] `/api/comments` DELETE API (`app/api/comments/route.ts`)
-  - [ ] 댓글 삭제 (본인만 가능)
-  - [ ] 권한 검증
-- [ ] 댓글 삭제 버튼 (본인 댓글만 표시)
-  - [ ] ⋯ 메뉴 추가
-  - [ ] 삭제 확인 다이얼로그
-- [ ] PostFeed 무한 스크롤 구현
-  - [ ] Intersection Observer 사용
-  - [ ] 하단 도달 시 다음 10개 로드
-  - [ ] 로딩 상태 표시
-  - [ ] 마지막 페이지 처리
+- [x] `/api/comments` DELETE API (`app/api/comments/route.ts`)
+  - [x] 댓글 삭제 (본인만 가능)
+  - [x] 권한 검증
+- [x] 댓글 삭제 버튼 (본인 댓글만 표시)
+  - [x] ⋯ 메뉴 추가
+  - [x] 삭제 확인 다이얼로그
+- [x] PostFeed 무한 스크롤 구현
+  - [x] Intersection Observer 사용
+  - [x] 하단 도달 시 다음 10개 로드
+  - [x] 로딩 상태 표시
+  - [x] 마지막 페이지 처리
 
 ---
 
@@ -195,10 +195,10 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 3-4. 최종 마무리 & 배포
 
-- [ ] 게시물 상세 모달/페이지
-  - [ ] PostModal 컴포넌트 (`components/post/PostModal.tsx`)
-  - [ ] Desktop: 모달 (이미지 50% + 댓글 50%)
-  - [ ] Mobile: 전체 페이지 (`app/(main)/post/[postId]/page.tsx`)
+- [x] 게시물 상세 모달/페이지
+  - [x] PostModal 컴포넌트 (`components/post/PostModal.tsx`)
+  - [x] Desktop: 모달 (이미지 50% + 댓글 50%)
+  - [x] Mobile: 전체 페이지 (`app/(main)/post/[postId]/page.tsx`)
 - [ ] 게시물 삭제 기능
   - [ ] ⋯ 메뉴에 삭제 옵션 (본인만)
   - [ ] `/api/posts/[postId]` DELETE API

@@ -66,7 +66,12 @@ export default async function HomePage() {
 
     return (
       <div className="w-full">
-        <PostFeed posts={posts} isLoading={false} error={null} />
+        <PostFeed
+          initialPosts={posts}
+          initialPage={1}
+          initialHasMore={data.pagination?.hasMore || false}
+          initialError={null}
+        />
       </div>
     );
   } catch (error) {
@@ -80,7 +85,12 @@ export default async function HomePage() {
 
     return (
       <div className="w-full">
-        <PostFeed posts={undefined} isLoading={false} error={errorMessage} />
+        <PostFeed
+          initialPosts={[]}
+          initialPage={1}
+          initialHasMore={false}
+          initialError={errorMessage}
+        />
       </div>
     );
   }
