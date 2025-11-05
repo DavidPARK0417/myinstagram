@@ -32,6 +32,7 @@ import {
   Bookmark,
   MoreVertical,
   X,
+  Trash2,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PostWithDetails, CommentWithUser } from "@/types/post";
@@ -68,6 +69,14 @@ export default function PostModal({
     post?.user_bookmarked || false,
   );
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+
+  // 삭제 메뉴 상태 관리
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // 본인 게시글인지 확인
+  const isOwnPost = clerkUser?.id === localPost?.user.clerk_id;
 
   // post가 변경될 때 상태 업데이트
   useEffect(() => {
@@ -151,11 +160,57 @@ export default function PostModal({
         body,
       });
 
-      const data = await response.json();
+      console.log("📡 응답 상태:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        contentType: response.headers.get("content-type"),
+      });
+
+      // 응답 본문이 비어있는지 확인
+      const responseText = await response.text();
+      console.log("📄 응답 본문 (raw):", responseText);
+
+      let data: any = {};
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText);
+          console.log("📦 파싱된 데이터:", data);
+        } catch (parseError) {
+          console.error("❌ JSON 파싱 실패:", parseError);
+          throw new Error("서버 응답을 파싱할 수 없습니다.");
+        }
+      } else {
+        console.warn("⚠️ 응답 본문이 비어있습니다.");
+      }
+
+      // 409 (Already Liked)는 상태 동기화를 의미
+      // 에러가 아니라 현재 상태를 확인하고 동기화만 수행
+      if (response.status === 409) {
+        // 이미 좋아요를 눌렀다는 의미 -> 상태를 true로 동기화
+        console.log("ℹ️ 이미 좋아요를 눌렀습니다. 상태 동기화 중...");
+        if (!isLiked) {
+          setIsLiked(true);
+          // 좋아요 수가 0보다 크면 유지, 아니면 1로 설정
+          if (likesCount === 0) {
+            setLikesCount(1);
+          }
+        }
+        console.log("✅ 상태 동기화 완료");
+        return; // 에러를 던지지 않고 조용히 처리
+      }
 
       if (!response.ok) {
-        console.error("❌ API 호출 실패:", data);
-        throw new Error(data.message || "좋아요 처리 중 오류가 발생했습니다.");
+        console.error("❌ API 호출 실패:", {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+        });
+        throw new Error(
+          data.message ||
+            data.error ||
+            `서버 오류가 발생했습니다. (${response.status})`,
+        );
       }
 
       // 상태 업데이트
@@ -281,6 +336,54 @@ export default function PostModal({
     }
   };
 
+  /**
+   * 게시물 삭제 핸들러
+   */
+  const handleDelete = async () => {
+    if (!localPost || isDeleting) return;
+
+    console.group(
+      `[PostModal] 게시물 삭제 시작 - post_id: ${localPost.post_id}`,
+    );
+    console.log("게시물 정보:", {
+      post_id: localPost.post_id,
+      user_id: localPost.user.id,
+    });
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(`/api/posts/${localPost.post_id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("❌ 게시물 삭제 실패:", data);
+        throw new Error(data.message || "게시물 삭제 중 오류가 발생했습니다.");
+      }
+
+      console.log("✅ 게시물 삭제 성공");
+      console.groupEnd();
+
+      // 삭제 성공 후 모달 닫기 및 페이지 새로고침
+      onOpenChange(false);
+      router.refresh();
+    } catch (error) {
+      console.error("❌ 게시물 삭제 오류:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "게시물 삭제 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      console.groupEnd();
+    }
+  };
+
   if (!localPost) return null;
 
   return (
@@ -340,10 +443,42 @@ export default function PostModal({
                 </span>
               </div>
             </div>
-            {/* ⋯ 메뉴 */}
-            <button className="text-[#262626] hover:opacity-50 transition-opacity">
-              <MoreVertical className="w-5 h-5" />
-            </button>
+            {/* ⋯ 메뉴 (본인 게시글만 표시) */}
+            {isOwnPost && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="text-[#262626] hover:opacity-50 transition-opacity"
+                  aria-label="게시물 메뉴"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+
+                {/* 드롭다운 메뉴 */}
+                {isMenuOpen && (
+                  <>
+                    {/* 백드롭 (클릭 시 메뉴 닫기) */}
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsMenuOpen(false)}
+                    />
+                    {/* 메뉴 */}
+                    <div className="absolute right-0 top-8 z-20 bg-white border border-[#dbdbdb] rounded-lg shadow-lg min-w-[160px]">
+                      <button
+                        onClick={() => {
+                          setIsDeleteDialogOpen(true);
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 text-left flex items-center gap-2 rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        삭제
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </header>
 
           {/* 댓글 목록 (스크롤 가능) */}
@@ -434,6 +569,36 @@ export default function PostModal({
           </div>
         </div>
       </DialogContent>
+
+      {/* 삭제 확인 다이얼로그 */}
+      {isDeleteDialogOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold text-[#262626] mb-2">
+              게시물 삭제
+            </h3>
+            <p className="text-sm text-[#8e8e8e] mb-6">
+              이 게시물을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-semibold text-[#262626] hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Dialog>
   );
 }
