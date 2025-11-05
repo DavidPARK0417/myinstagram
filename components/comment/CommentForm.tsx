@@ -12,12 +12,15 @@
  * 3. "게시" 버튼 (댓글 입력 시에만 활성화)
  * 4. 로딩 상태 처리
  * 5. API 호출 및 에러 처리
+ * 6. 이모지 피커 기능 (댓글에 이모지 삽입)
  *
  * @dependencies
  * - types/post: CommentWithUser 타입
+ * - emoji-picker-react: 이모지 피커 컴포넌트
  */
 
-import { useState, KeyboardEvent } from "react";
+import { useState, KeyboardEvent, useRef, useEffect } from "react";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { CommentWithUser } from "@/types/post";
 
 interface CommentFormProps {
@@ -31,6 +34,9 @@ export default function CommentForm({
 }: CommentFormProps) {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   /**
    * 댓글 제출 핸들러
@@ -99,22 +105,119 @@ export default function CommentForm({
     }
   };
 
+  /**
+   * 이모지 선택 핸들러
+   * 선택한 이모지를 textarea에 삽입하고 피커를 닫습니다.
+   */
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    console.group(`[CommentForm] 이모지 선택`);
+    console.log("선택한 이모지:", emojiData.emoji);
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const textBefore = content.substring(0, start);
+      const textAfter = content.substring(end);
+      const newContent = textBefore + emojiData.emoji + textAfter;
+
+      setContent(newContent);
+      console.log("✅ 이모지 삽입 완료");
+
+      // 커서 위치를 삽입된 이모지 뒤로 이동
+      setTimeout(() => {
+        textarea.focus();
+        const newCursorPos = start + emojiData.emoji.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
+    } else {
+      // textarea ref가 없으면 텍스트 끝에 추가
+      setContent((prev) => prev + emojiData.emoji);
+      console.log("✅ 이모지 추가 완료 (텍스트 끝)");
+    }
+
+    setShowEmojiPicker(false);
+    console.log("✅ 이모지 피커 닫기");
+    console.groupEnd();
+  };
+
+  /**
+   * 외부 클릭 감지 - 이모지 피커 닫기
+   */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        console.log("[CommentForm] 외부 클릭 감지 - 이모지 피커 닫기");
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      console.log("[CommentForm] 이모지 피커 열림");
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
   // 제출 가능 여부 (빈 값이 아니고 로딩 중이 아닐 때)
   const canSubmit = content.trim().length > 0 && !isLoading;
 
   return (
     <div className="flex items-center gap-2 pt-3 border-t border-[#dbdbdb]">
-      {/* 이모지 버튼 (UI만) */}
-      <button
-        className="text-[#262626] hover:opacity-50 transition-opacity cursor-not-allowed opacity-50"
-        disabled
-        title="이모지 기능은 준비 중입니다"
-      >
-        <span className="text-xl">😊</span>
-      </button>
+      {/* 이모지 버튼 */}
+      <div className="relative" ref={emojiPickerRef}>
+        <button
+          onClick={() => {
+            console.log(
+              `[CommentForm] 이모지 버튼 클릭 - 피커 ${
+                showEmojiPicker ? "닫기" : "열기"
+              }`,
+            );
+            setShowEmojiPicker(!showEmojiPicker);
+          }}
+          className="text-[#262626] hover:opacity-50 transition-opacity cursor-pointer"
+          title="이모지 추가"
+          type="button"
+        >
+          <span className="text-xl">😊</span>
+        </button>
+
+        {/* 이모지 피커 */}
+        {showEmojiPicker && (
+          <div className="absolute bottom-full mb-2 left-0 z-50 shadow-lg rounded-lg overflow-hidden border border-[#dbdbdb] bg-white">
+            {/* Desktop: 350x400, Mobile: 280x320 */}
+            <div className="hidden md:block">
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                width={350}
+                height={400}
+                previewConfig={{ showPreview: false }}
+                skinTonesDisabled
+              />
+            </div>
+            {/* Mobile */}
+            <div className="block md:hidden">
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                width={280}
+                height={320}
+                previewConfig={{ showPreview: false }}
+                skinTonesDisabled
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 댓글 입력창 */}
       <textarea
+        ref={textareaRef}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
