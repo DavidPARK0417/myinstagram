@@ -200,16 +200,16 @@ export default function CreatePostModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0">
+      <DialogContent className="sm:max-w-[600px] p-0 max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[#dbdbdb]">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[#dbdbdb] flex-shrink-0">
           <DialogTitle className="text-center text-lg font-semibold text-[#262626]">
             새 게시물 만들기
           </DialogTitle>
         </DialogHeader>
 
-        {/* 메인 컨텐츠 */}
-        <div className="px-6 py-6 space-y-6">
+        {/* 메인 컨텐츠 - 스크롤 가능 */}
+        <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
           {/* 이미지 선택 영역 */}
           <div className="space-y-4">
             <label className="text-sm font-semibold text-[#262626]">
@@ -309,8 +309,8 @@ export default function CreatePostModal({
           </div>
         </div>
 
-        {/* 푸터 */}
-        <DialogFooter className="px-6 pb-6 pt-4 border-t border-[#dbdbdb]">
+        {/* 푸터 - 고정 */}
+        <DialogFooter className="px-6 pb-6 pt-4 border-t border-[#dbdbdb] flex-shrink-0">
           <div className="flex gap-3 w-full">
             <Button
               variant="outline"
