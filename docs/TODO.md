@@ -202,14 +202,14 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 3-2. 프로필 페이지 - 게시물 그리드
 
-- [ ] PostGrid 컴포넌트 (`components/profile/PostGrid.tsx`)
-  - [ ] 3열 그리드 레이아웃 (반응형)
-  - [ ] 1:1 정사각형 썸네일
-  - [ ] Hover 시 좋아요/댓글 수 표시
-  - [ ] 클릭 시 게시물 상세 모달/페이지 이동
-- [ ] `/api/posts` GET API에 userId 파라미터 추가
-  - [ ] 특정 사용자의 게시물만 조회
-- [ ] 프로필 페이지에 PostGrid 통합
+- [x] PostGrid 컴포넌트 (`components/profile/PostGrid.tsx`)
+  - [x] 3열 그리드 레이아웃 (반응형)
+  - [x] 1:1 정사각형 썸네일
+  - [x] Hover 시 좋아요/댓글 수 표시
+  - [x] 클릭 시 게시물 상세 모달/페이지 이동
+- [x] `/api/posts` GET API에 userId 파라미터 추가
+  - [x] 특정 사용자의 게시물만 조회
+- [x] 프로필 페이지에 PostGrid 통합
 
 ### 3-3. 팔로우 기능
 

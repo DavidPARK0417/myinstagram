@@ -7,16 +7,18 @@
  * 주요 기능:
  * 1. 사용자 프로필 정보 표시 (ProfileHeader)
  * 2. 프로필 이미지, 통계, 팔로우 버튼
- * 3. 게시물 그리드는 3-2에서 구현 예정
+ * 3. 게시물 그리드 표시 (PostGrid)
  *
  * @dependencies
  * - components/profile/ProfileHeader: 프로필 헤더 컴포넌트
+ * - components/profile/PostGrid: 게시물 그리드 컴포넌트
  * - app/api/users/[userId]: 사용자 프로필 조회 API
  */
 
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import ProfileHeader from "@/components/profile/ProfileHeader";
+import PostGrid from "@/components/profile/PostGrid";
 import { UserProfileResponse } from "@/types/post";
 
 interface ProfilePageProps {
@@ -77,10 +79,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           isOwnProfile={data.isOwnProfile}
           isFollowing={data.isFollowing}
         />
-        {/* TODO: 3-2에서 게시물 그리드 구현 예정 */}
-        <div className="px-4 py-8 text-center text-[#8e8e8e]">
-          게시물 그리드는 곧 추가될 예정입니다.
-        </div>
+        <PostGrid userId={userId} />
       </div>
     );
   } catch (error) {
