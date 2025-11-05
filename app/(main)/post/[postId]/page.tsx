@@ -43,11 +43,13 @@ export async function generateMetadata({
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
     const baseUrl = `${protocol}://${host}`;
 
-    // 게시물 상세 API 호출
+    // 게시물 상세 API 호출 (쿠키 전달)
+    const cookie = headersList.get("cookie") ?? "";
     const response = await fetch(`${baseUrl}/api/posts/${postId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        cookie,
       },
       cache: "no-store",
     });
@@ -113,11 +115,13 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
     console.log("📝 API 호출:", `${baseUrl}/api/posts/${postId}`);
 
-    // 게시물 상세 API 호출
+    // 게시물 상세 API 호출 (쿠키 전달)
+    const cookie = headersList.get("cookie") ?? "";
     const response = await fetch(`${baseUrl}/api/posts/${postId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        cookie,
       },
       cache: "no-store",
     });

@@ -388,7 +388,7 @@ export default function PostModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl w-full h-[90vh] p-0 flex flex-col sm:flex-row">
+      <DialogContent className="max-w-[95vw] sm:max-w-5xl lg:max-w-6xl w-full h-[90vh] p-0 flex flex-col sm:flex-row">
         {/* 접근성을 위한 DialogTitle (시각적으로 숨김) */}
         <DialogTitle className="sr-only">
           {localPost.user.name}님의 게시물

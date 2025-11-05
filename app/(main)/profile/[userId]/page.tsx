@@ -44,11 +44,13 @@ export async function generateMetadata({
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
     const baseUrl = `${protocol}://${host}`;
 
-    // 사용자 프로필 API 호출
+    // 사용자 프로필 API 호출 (쿠키 전달)
+    const cookie = headersList.get("cookie") ?? "";
     const response = await fetch(`${baseUrl}/api/users/${userId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        cookie,
       },
       cache: "no-store",
     });
@@ -115,11 +117,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
     console.log("📝 API 호출:", `${baseUrl}/api/users/${userId}`);
 
-    // 사용자 프로필 API 호출
+    // 사용자 프로필 API 호출 (쿠키 전달)
+    const cookie = headersList.get("cookie") ?? "";
     const response = await fetch(`${baseUrl}/api/users/${userId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        cookie,
       },
       cache: "no-store",
     });

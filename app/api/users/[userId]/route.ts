@@ -115,16 +115,29 @@ export async function GET(
             .select("id")
             .eq("follower_id", currentUser.id)
             .eq("following_id", userId)
-            .single();
+            .maybeSingle(); // .single() 대신 .maybeSingle() 사용 (결과가 없어도 에러 발생 안 함)
 
           console.log("🔍 팔로우 상태 확인:", {
+            followerId: currentUser.id,
+            followingId: userId,
             followId: follow?.id,
+            followData: follow,
             error: followError,
+            errorMessage: followError?.message,
             isFollowing: !followError && !!follow,
           });
 
+          // 에러가 없고 follow 데이터가 있으면 팔로우 중
           if (!followError && follow) {
             isFollowing = true;
+            console.log("✅ 팔로우 관계 확인됨 - 팔로우 중입니다");
+          } else {
+            // 명시적으로 false로 설정 (에러가 있거나 follow가 null인 경우)
+            isFollowing = false;
+            console.log("❌ 팔로우 관계 없음 - 팔로우하지 않음:", {
+              hasError: !!followError,
+              hasFollow: !!follow,
+            });
           }
         } else {
           console.log("✅ 본인 프로필이므로 팔로우 상태 확인 스킵");
@@ -153,6 +166,14 @@ export async function GET(
       name: userStats.name,
       isOwnProfile,
       isFollowing,
+      responseData: {
+        user: {
+          id: response.user.id,
+          name: response.user.name,
+        },
+        isOwnProfile: response.isOwnProfile,
+        isFollowing: response.isFollowing,
+      },
     });
     console.groupEnd();
 

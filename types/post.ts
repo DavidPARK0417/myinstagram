@@ -100,3 +100,11 @@ export interface UserProfileResponse {
   isOwnProfile: boolean;
   isFollowing: boolean;
 }
+
+/**
+ * 팔로워/팔로잉 목록 API 응답 타입
+ */
+export interface FollowListResponse {
+  users: User[];
+  total: number;
+}

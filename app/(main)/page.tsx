@@ -36,11 +36,13 @@ export default async function HomePage() {
 
     console.log("📝 API 호출:", `${baseUrl}/api/posts?page=1&limit=10`);
 
-    // 게시물 목록 API 호출
+    // 게시물 목록 API 호출 (쿠키 전달하여 좋아요/북마크 상태 계산)
+    const cookie = headersList.get("cookie") ?? "";
     const response = await fetch(`${baseUrl}/api/posts?page=1&limit=10`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        cookie,
       },
       // Server Component에서 API 호출 시 캐시를 사용하지 않음
       cache: "no-store",

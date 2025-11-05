@@ -26,6 +26,7 @@ import { useUser } from "@clerk/nextjs";
 import { ProfileInfo } from "@/types/post";
 import { cn } from "@/lib/utils";
 import EditProfileModal from "./EditProfileModal";
+import FollowListModal from "./FollowListModal";
 
 interface ProfileHeaderProps {
   user: ProfileInfo;
@@ -66,6 +67,7 @@ export default function ProfileHeader({
       }
     }
   }, [clerkUser, user.clerk_id, initialIsOwnProfile]);
+
   // 팔로우 상태 관리
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,13 +75,72 @@ export default function ProfileHeader({
     user.followers_count || 0,
   );
 
+  // user.id가 변경될 때 (다른 프로필로 이동) 상태 리셋
+  useEffect(() => {
+    console.log("🔄 [ProfileHeader] 사용자 변경 감지 - 상태 리셋:", {
+      userId: user.id,
+      initialIsFollowing,
+      initialFollowersCount: user.followers_count,
+    });
+    setIsFollowing(initialIsFollowing);
+    setFollowersCount(user.followers_count || 0);
+  }, [user.id, initialIsFollowing, user.followers_count]);
+
+  // initialIsFollowing prop이 변경될 때 상태 업데이트 (같은 프로필 재접근 시)
+  useEffect(() => {
+    console.log("🔄 [ProfileHeader] 팔로우 상태 동기화:", {
+      initialIsFollowing,
+      currentIsFollowing: isFollowing,
+      mismatch: initialIsFollowing !== isFollowing,
+    });
+
+    // 항상 prop 값으로 동기화 (조건문 제거)
+    if (initialIsFollowing !== isFollowing) {
+      console.log("✅ [ProfileHeader] 팔로우 상태 업데이트:", {
+        from: isFollowing,
+        to: initialIsFollowing,
+      });
+      setIsFollowing(initialIsFollowing);
+    }
+  }, [initialIsFollowing]);
+
   // 프로필 편집 모달 상태 관리
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<ProfileInfo>(user);
 
+  // 팔로워/팔로잉 모달 상태 관리
+  const [isFollowListModalOpen, setIsFollowListModalOpen] = useState(false);
+  const [followListModalTab, setFollowListModalTab] = useState<
+    "followers" | "following"
+  >("followers");
+
   // 사용자 정보 업데이트 핸들러
   const handleUserUpdate = (updatedUser: ProfileInfo) => {
     setCurrentUser(updatedUser);
+  };
+
+  // 팔로워 버튼 클릭 핸들러
+  const handleFollowersClick = () => {
+    if (!isOwnProfile) return; // 내 프로필에서만 클릭 가능
+    console.log("🔄 [ProfileHeader] 팔로워 버튼 클릭");
+    setFollowListModalTab("followers");
+    setIsFollowListModalOpen(true);
+  };
+
+  // 팔로잉 버튼 클릭 핸들러
+  const handleFollowingClick = () => {
+    if (!isOwnProfile) return; // 내 프로필에서만 클릭 가능
+    console.log("🔄 [ProfileHeader] 팔로잉 버튼 클릭");
+    setFollowListModalTab("following");
+    setIsFollowListModalOpen(true);
+  };
+
+  // 언팔로우 후 콜백 (팔로잉 수 업데이트)
+  const handleUnfollow = () => {
+    // 팔로잉 수 감소
+    const currentFollowingCount = user.following_count || 0;
+    // 실제로는 서버에서 받은 값으로 업데이트되지만, 즉시 UI 업데이트를 위해
+    // 여기서는 페이지 새로고침으로 처리 (모달에서 이미 router.refresh() 호출)
   };
 
   /**
@@ -288,13 +349,31 @@ export default function ProfileHeader({
             </span>
             <span className="text-[#8e8e8e]">게시물</span>
           </div>
-          <button className="flex items-center gap-1 hover:opacity-50 transition-opacity">
+          <button
+            onClick={handleFollowersClick}
+            disabled={!isOwnProfile}
+            className={cn(
+              "flex items-center gap-1 transition-opacity",
+              isOwnProfile
+                ? "hover:opacity-50 cursor-pointer"
+                : "cursor-default opacity-100",
+            )}
+          >
             <span className="font-semibold text-[#262626]">
               {followersCount}
             </span>
             <span className="text-[#8e8e8e]">팔로워</span>
           </button>
-          <button className="flex items-center gap-1 hover:opacity-50 transition-opacity">
+          <button
+            onClick={handleFollowingClick}
+            disabled={!isOwnProfile}
+            className={cn(
+              "flex items-center gap-1 transition-opacity",
+              isOwnProfile
+                ? "hover:opacity-50 cursor-pointer"
+                : "cursor-default opacity-100",
+            )}
+          >
             <span className="font-semibold text-[#262626]">
               {user.following_count || 0}
             </span>
@@ -315,6 +394,17 @@ export default function ProfileHeader({
         user={currentUser}
         onUpdate={handleUserUpdate}
       />
+
+      {/* 팔로워/팔로잉 목록 모달 */}
+      {isOwnProfile && (
+        <FollowListModal
+          open={isFollowListModalOpen}
+          onOpenChange={setIsFollowListModalOpen}
+          userId={user.id}
+          initialTab={followListModalTab}
+          onUnfollow={handleUnfollow}
+        />
+      )}
     </div>
   );
 }
