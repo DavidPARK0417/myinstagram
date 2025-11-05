@@ -61,6 +61,7 @@ export interface PostWithDetails extends PostStats {
   user: User;
   comments: Comment[];
   user_liked?: boolean; // 현재 사용자가 좋아요를 눌렀는지 여부
+  user_bookmarked?: boolean; // 현재 사용자가 북마크를 눌렀는지 여부
 }
 
 /**

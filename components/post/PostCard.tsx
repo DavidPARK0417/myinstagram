@@ -52,6 +52,12 @@ export default function PostCard({ post }: PostCardProps) {
   const [isDoubleTapAnimating, setIsDoubleTapAnimating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 북마크 상태 관리
+  const [isBookmarked, setIsBookmarked] = useState(
+    post.user_bookmarked || false,
+  );
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+
   /**
    * 게시물 클릭 핸들러 (이미지 또는 댓글 "모두 보기" 클릭 시)
    */
@@ -257,6 +263,60 @@ export default function PostCard({ post }: PostCardProps) {
     }
   };
 
+  /**
+   * 북마크 버튼 클릭 핸들러
+   */
+  const handleBookmarkClick = async () => {
+    if (isBookmarkLoading) return;
+
+    console.group(`[PostCard] 북마크 버튼 클릭 - post_id: ${post.post_id}`);
+    console.log("현재 상태:", { isBookmarked });
+
+    setIsBookmarkLoading(true);
+
+    try {
+      const url = "/api/bookmarks";
+      const method = isBookmarked ? "DELETE" : "POST";
+      const body = JSON.stringify({ post_id: post.post_id });
+
+      console.log(`API 호출: ${method} ${url}`, { post_id: post.post_id });
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("❌ API 호출 실패:", data);
+        throw new Error(data.message || "북마크 처리 중 오류가 발생했습니다.");
+      }
+
+      // 상태 업데이트
+      const newIsBookmarked = !isBookmarked;
+      setIsBookmarked(newIsBookmarked);
+
+      console.log("✅ 상태 업데이트:", {
+        isBookmarked: newIsBookmarked,
+      });
+    } catch (error) {
+      console.error("❌ 북마크 처리 오류:", error);
+      // 에러 발생 시 사용자에게 알림
+      alert(
+        error instanceof Error
+          ? error.message
+          : "북마크 처리 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsBookmarkLoading(false);
+      console.groupEnd();
+    }
+  };
+
   return (
     <article className="bg-white border border-[#dbdbdb] rounded-lg mb-4">
       {/* 헤더 섹션 (60px) */}
@@ -363,13 +423,22 @@ export default function PostCard({ post }: PostCardProps) {
             <Send className="w-6 h-6" />
           </button>
         </div>
-        {/* 북마크 버튼 (UI만) */}
+        {/* 북마크 버튼 */}
         <button
-          className="text-[#262626] hover:opacity-50 transition-opacity cursor-not-allowed opacity-50"
-          disabled
-          title="북마크 기능은 준비 중입니다"
+          onClick={handleBookmarkClick}
+          disabled={isBookmarkLoading}
+          className={cn(
+            "text-[#262626] hover:opacity-50 transition-opacity",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+          )}
+          title={isBookmarked ? "북마크 제거" : "북마크 추가"}
         >
-          <Bookmark className="w-6 h-6" />
+          <Bookmark
+            className={cn(
+              "w-6 h-6 transition-transform",
+              isBookmarked && "fill-[#262626] text-[#262626]",
+            )}
+          />
         </button>
       </div>
 

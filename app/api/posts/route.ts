@@ -167,11 +167,12 @@ export async function GET(request: NextRequest) {
       commentsByPost.get(comment.post_id)!.push(comment);
     });
 
-    // 현재 사용자 ID 가져오기 (좋아요 상태 확인용)
+    // 현재 사용자 ID 가져오기 (좋아요/북마크 상태 확인용)
     const { userId: clerkUserId } = await auth();
 
-    // 좋아요 상태 조회 (현재 사용자가 로그인한 경우)
+    // 좋아요 및 북마크 상태 조회 (현재 사용자가 로그인한 경우)
     let userLikes: string[] = [];
+    let userBookmarks: string[] = [];
     if (clerkUserId) {
       // Supabase에서 현재 사용자 ID를 가져오기 위해 users 테이블에서 조회
       const { data: currentUser } = await supabase
@@ -181,6 +182,7 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (currentUser) {
+        // 좋아요 상태 조회
         const { data: likes } = await supabase
           .from("likes")
           .select("post_id")
@@ -188,6 +190,15 @@ export async function GET(request: NextRequest) {
           .in("post_id", postIds);
 
         userLikes = likes?.map((like) => like.post_id) || [];
+
+        // 북마크 상태 조회
+        const { data: bookmarks } = await supabase
+          .from("bookmarks")
+          .select("post_id")
+          .eq("user_id", currentUser.id)
+          .in("post_id", postIds);
+
+        userBookmarks = bookmarks?.map((bookmark) => bookmark.post_id) || [];
       }
     }
 
@@ -223,6 +234,7 @@ export async function GET(request: NextRequest) {
         },
         comments: commentsWithUsers,
         user_liked: userLikes.includes(post.post_id),
+        user_bookmarked: userBookmarks.includes(post.post_id),
       };
     });
 

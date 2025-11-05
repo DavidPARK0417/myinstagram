@@ -100,27 +100,27 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 #### 북마크 기능 (Bookmark)
 
-- [ ] `bookmarks` 테이블 생성 (마이그레이션)
-  - [ ] id, post_id, user_id, created_at
-  - [ ] UNIQUE(post_id, user_id) 제약 조건
-  - [ ] 인덱스 생성
-  - [ ] RLS 비활성화 (개발 환경)
-- [ ] `/api/bookmarks` POST API (`app/api/bookmarks/route.ts`)
-  - [ ] 북마크 추가
-  - [ ] 중복 체크
-  - [ ] 에러 처리
-- [ ] `/api/bookmarks` DELETE API
-  - [ ] 북마크 삭제
-  - [ ] 권한 검증
-- [ ] 북마크 버튼 기능 (`components/post/PostCard.tsx`, `PostModal.tsx`)
-  - [ ] 빈 북마크 ↔ 채워진 북마크 상태 전환
-  - [ ] 클릭 시 API 호출 및 즉시 UI 업데이트
-  - [ ] 로딩 상태 처리
-  - [ ] 로그 추가 (디버깅용)
-- [ ] 타입 정의 업데이트 (`types/post.ts`)
-  - [ ] PostWithDetails에 user_bookmarked 필드 추가
-- [ ] `/api/posts` GET API 수정
-  - [ ] 북마크 여부(user_bookmarked) 조회 추가
+- [x] `bookmarks` 테이블 생성 (마이그레이션)
+  - [x] id, post_id, user_id, created_at
+  - [x] UNIQUE(post_id, user_id) 제약 조건
+  - [x] 인덱스 생성
+  - [x] RLS 비활성화 (개발 환경)
+- [x] `/api/bookmarks` POST API (`app/api/bookmarks/route.ts`)
+  - [x] 북마크 추가
+  - [x] 중복 체크
+  - [x] 에러 처리
+- [x] `/api/bookmarks` DELETE API
+  - [x] 북마크 삭제
+  - [x] 권한 검증
+- [x] 북마크 버튼 기능 (`components/post/PostCard.tsx`, `PostModal.tsx`)
+  - [x] 빈 북마크 ↔ 채워진 북마크 상태 전환
+  - [x] 클릭 시 API 호출 및 즉시 UI 업데이트
+  - [x] 로딩 상태 처리
+  - [x] 로그 추가 (디버깅용)
+- [x] 타입 정의 업데이트 (`types/post.ts`)
+  - [x] PostWithDetails에 user_bookmarked 필드 추가
+- [x] `/api/posts` GET API 수정
+  - [x] 북마크 여부(user_bookmarked) 조회 추가
 
 ---
 

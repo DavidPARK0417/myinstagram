@@ -63,6 +63,12 @@ export default function PostModal({
   const [likesCount, setLikesCount] = useState(post?.likes_count || 0);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 북마크 상태 관리
+  const [isBookmarked, setIsBookmarked] = useState(
+    post?.user_bookmarked || false,
+  );
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+
   // post가 변경될 때 상태 업데이트
   useEffect(() => {
     if (post) {
@@ -72,6 +78,7 @@ export default function PostModal({
       setCommentsCount(post.comments_count || 0);
       setIsLiked(post.user_liked || false);
       setLikesCount(post.likes_count || 0);
+      setIsBookmarked(post.user_bookmarked || false);
     }
   }, [post]);
 
@@ -218,6 +225,62 @@ export default function PostModal({
     }
   };
 
+  /**
+   * 북마크 버튼 클릭 핸들러
+   */
+  const handleBookmarkClick = async () => {
+    if (!localPost || isBookmarkLoading) return;
+
+    console.group(
+      `[PostModal] 북마크 버튼 클릭 - post_id: ${localPost.post_id}`,
+    );
+    console.log("현재 상태:", { isBookmarked });
+
+    setIsBookmarkLoading(true);
+
+    try {
+      const url = "/api/bookmarks";
+      const method = isBookmarked ? "DELETE" : "POST";
+      const body = JSON.stringify({ post_id: localPost.post_id });
+
+      console.log(`API 호출: ${method} ${url}`, { post_id: localPost.post_id });
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("❌ API 호출 실패:", data);
+        throw new Error(data.message || "북마크 처리 중 오류가 발생했습니다.");
+      }
+
+      // 상태 업데이트
+      const newIsBookmarked = !isBookmarked;
+      setIsBookmarked(newIsBookmarked);
+
+      console.log("✅ 상태 업데이트:", {
+        isBookmarked: newIsBookmarked,
+      });
+    } catch (error) {
+      console.error("❌ 북마크 처리 오류:", error);
+      // 에러 발생 시 사용자에게 알림
+      alert(
+        error instanceof Error
+          ? error.message
+          : "북마크 처리 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsBookmarkLoading(false);
+      console.groupEnd();
+    }
+  };
+
   if (!localPost) return null;
 
   return (
@@ -337,11 +400,20 @@ export default function PostModal({
                 </button>
               </div>
               <button
-                className="text-[#262626] hover:opacity-50 transition-opacity cursor-not-allowed opacity-50"
-                disabled
-                title="북마크 기능은 준비 중입니다"
+                onClick={handleBookmarkClick}
+                disabled={isBookmarkLoading}
+                className={cn(
+                  "text-[#262626] hover:opacity-50 transition-opacity",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                )}
+                title={isBookmarked ? "북마크 제거" : "북마크 추가"}
               >
-                <Bookmark className="w-6 h-6" />
+                <Bookmark
+                  className={cn(
+                    "w-6 h-6 transition-transform",
+                    isBookmarked && "fill-[#262626] text-[#262626]",
+                  )}
+                />
               </button>
             </div>
 
