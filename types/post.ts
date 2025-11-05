@@ -69,3 +69,33 @@ export interface PostWithDetails extends PostStats {
 export interface CommentWithUser extends Comment {
   user: User;
 }
+
+/**
+ * 사용자 통계 타입 (user_stats 뷰)
+ */
+export interface UserStats {
+  user_id: string;
+  clerk_id: string;
+  name: string;
+  posts_count: number;
+  followers_count: number;
+  following_count: number;
+}
+
+/**
+ * 프로필 정보 타입 (API 응답용)
+ */
+export interface ProfileInfo extends UserStats {
+  id: string; // user_id와 동일 (별칭)
+  created_at: string;
+  image_url?: string; // Clerk 프로필 이미지 URL (optional)
+}
+
+/**
+ * 사용자 프로필 API 응답 타입
+ */
+export interface UserProfileResponse {
+  user: ProfileInfo;
+  isOwnProfile: boolean;
+  isFollowing: boolean;
+}

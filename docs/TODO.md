@@ -152,18 +152,18 @@ PRD 문서의 개발 순서를 기반으로 작성된 작업 체크리스트입�
 
 ### 3-1. 프로필 페이지 - 기본 정보
 
-- [ ] `/profile/[userId]` 동적 라우트 생성 (`app/(main)/profile/[userId]/page.tsx`)
-- [ ] 프로필 헤더 컴포넌트 (`components/profile/ProfileHeader.tsx`)
-  - [ ] 프로필 이미지 (150px Desktop / 90px Mobile)
-  - [ ] 사용자명, 전체 이름
-  - [ ] 통계 (게시물 수, 팔로워 수, 팔로잉 수)
-  - [ ] "팔로우" 또는 "팔로잉" 버튼 (다른 사람 프로필일 때)
+- [x] `/profile/[userId]` 동적 라우트 생성 (`app/(main)/profile/[userId]/page.tsx`)
+- [x] 프로필 헤더 컴포넌트 (`components/profile/ProfileHeader.tsx`)
+  - [x] 프로필 이미지 (150px Desktop / 90px Mobile)
+  - [x] 사용자명, 전체 이름
+  - [x] 통계 (게시물 수, 팔로워 수, 팔로잉 수)
+  - [x] "팔로우" 또는 "팔로잉" 버튼 (다른 사람 프로필일 때)
   - [ ] "프로필 편집" 버튼 (내 프로필일 때, 1차 제외)
-- [ ] `/api/users/[userId]` GET API (`app/api/users/[userId]/route.ts`)
-  - [ ] 사용자 정보 조회
-  - [ ] user_stats 뷰 활용 (게시물 수, 팔로워 수, 팔로잉 수)
-- [ ] 내 프로필 페이지 (`/profile`)
-  - [ ] 현재 사용자 ID로 리다이렉트
+- [x] `/api/users/[userId]` GET API (`app/api/users/[userId]/route.ts`)
+  - [x] 사용자 정보 조회
+  - [x] user_stats 뷰 활용 (게시물 수, 팔로워 수, 팔로잉 수)
+- [x] 내 프로필 페이지 (`/profile`)
+  - [x] 현재 사용자 ID로 리다이렉트
 
 ### 3-2. 프로필 페이지 - 게시물 그리드
 

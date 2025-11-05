@@ -54,12 +54,7 @@ const sidebarItems: SidebarItem[] = [
     requiresAuth: true,
     isModal: true, // 모달을 열어야 함
   },
-  {
-    href: "/profile",
-    icon: User,
-    label: "프로필",
-    requiresAuth: true,
-  },
+  // 프로필 메뉴 항목 제거 - UserButton으로 통합
 ];
 
 export default function Sidebar() {
@@ -170,7 +165,10 @@ export default function Sidebar() {
                   </Link>
                 </>
               ) : (
-                <div className="px-3 py-2 flex items-center gap-3">
+                <Link
+                  href="/profile"
+                  className="px-3 py-2 flex items-center gap-3 hover:bg-[#fafafa] rounded-lg transition-colors"
+                >
                   <UserButton
                     afterSignOutUrl="/"
                     appearance={{
@@ -183,7 +181,7 @@ export default function Sidebar() {
                   <span className="text-sm text-gray-700 font-medium">
                     내 프로필
                   </span>
-                </div>
+                </Link>
               )}
             </div>
           </nav>
@@ -257,14 +255,16 @@ export default function Sidebar() {
                   <User className="w-6 h-6" />
                 </Link>
               ) : (
-                <UserButton
-                  afterSignOutUrl="/"
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-10 h-10",
-                    },
-                  }}
-                />
+                <Link href="/profile" title="프로필">
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-10 h-10",
+                      },
+                    }}
+                  />
+                </Link>
               )}
             </div>
           </nav>

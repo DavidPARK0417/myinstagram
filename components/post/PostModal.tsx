@@ -33,7 +33,7 @@ import {
   MoreVertical,
   X,
 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PostWithDetails, CommentWithUser } from "@/types/post";
 import { formatRelativeTime } from "@/lib/utils/format-time";
 import { cn } from "@/lib/utils";
@@ -180,6 +180,10 @@ export default function PostModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl w-full h-[90vh] p-0 flex flex-col sm:flex-row">
+        {/* 접근성을 위한 DialogTitle (시각적으로 숨김) */}
+        <DialogTitle className="sr-only">
+          {localPost.user.name}님의 게시물
+        </DialogTitle>
         {/* 이미지 영역 (50%) */}
         <div className="w-full sm:w-1/2 h-full bg-black flex items-center justify-center">
           <div className="relative w-full h-full">
